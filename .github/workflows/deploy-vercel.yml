@@ -49,24 +49,25 @@ jobs:
       # `vercel deploy` no longer runs the build server-side — it expects a
       # prebuilt `.vercel/output/` directory. So we run `vercel build` first
       # and ship the result with `--prebuilt`.
+      #
+      # `vercel build` does NOT accept `--build-env` (that's a deploy-only
+      # flag). Build-time env vars are passed as plain shell env vars — the
+      # Vite build reads them via `loadEnv` and bakes them into the bundle
+      # via `define`.
       - name: Build with Vercel CLI
-        run: |
-          vercel build --yes \
-            --token ${{ secrets[matrix.token_secret] }} \
-            --build-env BFF_URL="${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}" \
-            --build-env IDP_URL="${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}"
+        run: vercel build --yes --token ${{ secrets[matrix.token_secret] }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          BFF_URL: ${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}
+          IDP_URL: ${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}
 
       - name: Deploy to Vercel
         id: vercel-deploy
         run: |
           vercel deploy --yes --prebuilt \
             --token ${{ secrets[matrix.token_secret] }} \
-            --target production \
-            --build-env BFF_URL="${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}" \
-            --build-env IDP_URL="${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}"
+            --target production
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
