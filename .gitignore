@@ -13,3 +13,5 @@ tmp/
 
 # IDE / agent state
 .puku-cli/
+
+.vercel
