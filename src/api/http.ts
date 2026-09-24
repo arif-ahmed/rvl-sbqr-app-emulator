@@ -24,8 +24,11 @@ export class ApiError extends Error {
   }
 }
 
-// Same-origin prefixes forwarded by the Vite dev proxy (see vite.config.ts).
-const PREFIX: Record<NetTarget, string> = { BFF: '/bff', IdP: '/idp' };
+// Same-origin prefix in production, served by /api/proxy/[...path].ts (a Node
+// serverless function that forwards to IDP_URL / BFF_URL). In dev, the same
+// path is handled by the Vite server proxy in vite.config.ts. Either way
+// the browser always sees a same-origin URL, so no CORS is needed.
+const PREFIX: Record<NetTarget, string> = { BFF: '/api/proxy/bff', IdP: '/api/proxy/idp' };
 
 export interface RequestOptions {
   bearer?: string;

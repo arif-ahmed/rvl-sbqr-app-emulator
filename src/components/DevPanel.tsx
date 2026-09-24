@@ -27,8 +27,8 @@ function useHealth() {
   const [bff, setBff] = useState<Health>('checking');
   const [idp, setIdp] = useState<Health>('checking');
   const check = () => {
-    probe('/bff/health/ready').then(setBff);
-    probe('/idp/.well-known/openid-configuration').then(setIdp);
+    probe('/api/proxy/bff/health/ready').then(setBff);
+    probe('/api/proxy/idp/.well-known/openid-configuration').then(setIdp);
   };
   useEffect(() => {
     check();

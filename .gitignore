@@ -4,3 +4,12 @@ dist
 .env.local
 tmp/
 .gstack/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Vercel local link
+.vercel/
+
+# IDE / agent state
+.puku-cli/

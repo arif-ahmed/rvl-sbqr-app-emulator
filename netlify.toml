@@ -7,14 +7,19 @@
 
 # Netlify resolves env vars referenced in [redirect.*.destination] at deploy time,
 # so BFF_URL / IDP_URL must be set in the Netlify UI per-FI (see docs/deploy.md).
+#
+# The browser calls /api/proxy/{idp,bff}/* (a Vercel serverless function in
+# /api/proxy/[...path].ts). Netlify has no equivalent Vercel function, so we
+# map the same path to the upstream directly. Netlify's edge does not have
+# the Vercel-specific POP-DNS issue we hit, so a direct rewrite is fine.
 [[redirects]]
-  from = "/bff/*"
+  from = "/api/proxy/bff/*"
   to   = "https://${BFF_URL}/:splat"
   status = 200
   force = true
 
 [[redirects]]
-  from = "/idp/*"
+  from = "/api/proxy/idp/*"
   to   = "https://${IDP_URL}/:splat"
   status = 200
   force = true
@@ -28,11 +33,11 @@
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+  Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    X-Frame-Options = "DENY"
+  X-Content-Type-Options = "nosniff"
+  Referrer-Policy = "strict-origin-when-cross-origin"
+  X-Frame-Options = "DENY"

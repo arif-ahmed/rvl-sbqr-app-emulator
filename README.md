@@ -36,7 +36,9 @@ npm run dev            # http://localhost:5173
 
 Requirements: Node 18+. It needs the FI IdP and the FI BFF running. The BFF has
 no CORS policy (it is built for native apps), so the Vite dev server proxies
-`/bff/*` → `BFF_URL` and `/idp/*` → `IDP_URL`. Copy `.env.example` to `.env`
+`/api/proxy/bff/*` → `BFF_URL` and `/api/proxy/idp/*` → `IDP_URL`. The same
+prefix is used in production — on Vercel it's served by the Node serverless
+function in `api/proxy/[...path].ts`. Copy `.env.example` to `.env`
 to change the targets:
 
 ```bash

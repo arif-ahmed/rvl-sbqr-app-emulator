@@ -40,24 +40,22 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
-      - name: Build with FI env
-        run: npm run build
-        env:
-          # Override the defaults baked into vite.config.ts. Set GitHub
-          # Actions variables BFF_URL_DHAKABANK / IDP_URL_DHAKABANK to change.
-          BFF_URL: ${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}
-          IDP_URL: ${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
+      # Let Vercel run the build itself — it reads vercel.json's buildCommand
+      # (npm run build) and injects env vars (BFF_URL, IDP_URL, VITE_IDP_*)
+      # from the project settings. This is the standard Vercel flow and
+      # avoids Vercel CLI 60's --prebuilt requirement of .vercel/output.
       - name: Deploy to Vercel
         id: vercel-deploy
         run: |
-          vercel deploy --yes --prebuilt \
+          vercel deploy --yes \
             --token ${{ secrets[matrix.token_secret] }} \
-            --target production
+            --target production \
+            --build-env BFF_URL="${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}" \
+            --build-env IDP_URL="${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}"
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

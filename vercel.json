@@ -6,10 +6,6 @@
   "framework": "vite",
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
-    { "source": "/bff/(.*)", "destination": "https://${BFF_URL}/$1" },
-    { "source": "/idp/(.*)", "destination": "https://${IDP_URL}/$1" }
-  ],
   "headers": [
     {
       "source": "/assets/(.*)",
