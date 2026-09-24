@@ -51,19 +51,27 @@ the IdP are reachable.
 
 ### Offline stack (no real sbqr.api)
 
-`rvl-sbqr-fi-gateway/tmp/fakes/fake-sbqr-api.js` returns fixed placeholder
-strings that are not BanglaQR, so they fail the on-device checks. For offline
-runs use `mock/mock-sbqr-api.cjs`. It builds spec-conformant payloads (TLV,
-Ed25519 over Tag 59 ‖ Tag 26.03, split into Tags 80/81, CRC) and verifies them
-with the platform's verdict vocabulary.
+The `tmp/fakes/fake-sbqr-api.js` in `rvl-sbqr-fi-gateway` returns fixed
+placeholder strings that are not BanglaQR. For offline runs use the canonical
+spec-conformant stand-in from `rvl-sbqr-mocks`:
 
 ```bash
-node ../rvl-sbqr-fi-gateway/tmp/fakes/fake-idp.js         # :5105
-node mock/mock-sbqr-api.cjs                               # :5201 (INSTITUTION=000085 by default)
-pwsh mock/start-bff.ps1                                   # BFF :8080 → :5201
-#   -Port 8090 -NoBuild   run a second BFF next to one already running (bin/ is locked)
-npm run dev                                               # or: BFF_URL=http://localhost:8090 npm run dev
-```
+# Upstream — :5201 (Docker, recommended):
+docker compose -f ../rvl-sbqr-mocks/docker-compose.yml up --build sbqr-api-mock
+
+# …or, without Docker, from ../rvl-sbqr-mocks/services/sbqr-api-mock/:
+#   PORT=5201 INSTITUTION=000085 node src/mock-sbqr-api.cjs
+
+# IdP — :5105 (one of the fi-idp-mock instances in rvl-sbqr-mocks/docker-compose.yml,
+# or for a smoke run, host-run from ../rvl-sbqr-fi-gateway/tmp/fakes/fake-idp.js)
+
+# BFF — start it however you prefer; e.g. from ../rvl-sbqr-fi-gateway/:
+#   dotnet run --project src/SBQR.FiGateway.Api
+# with ASPNETCORE_ENVIRONMENT=Development and the env overrides from
+# rvl-sbqr-mocks/services/sbqr-api-mock/README.md#wiring-for-rvl-sbqr-fi-gateway
+
+# Finally this emulator:
+npm run dev
 
 The mock generates a new signing key each time it starts. QRs from an earlier
 run therefore validate as `INVALID_SIGNATURE`, and institutions other than
@@ -105,7 +113,6 @@ src/
   state/        session, navigation stack, ledger, simulation knobs, saved QRs
   screens/      Login, Home, Receive, QrDisplay, Pay, Decoded, Review, Pay.flow, Activity, Profile
   components/   phone frame, UI kit, tester console
-mock/           spec-conformant sbqr.api mock + BFF launcher
 ```
 
 ```bash
@@ -119,3 +126,12 @@ npm run build     # typecheck + production build
 - OTP, settlement, balances, NPSB references and the "received" notification are simulated in the browser.
 - Single-use and expiry hooks for dynamic QRs only know about QRs generated or paid in this browser.
 - Tag 26 (institution) in generated QRs comes from sbqr.api's tenant registration, not from the app theme.
+
+## Companion repos
+
+- `rvl-sbqr-mocks` — server-side mocks (`fi-idp-mock`, `sbqr-api-mock`, …).
+  The `sbqr-api-mock` service in that repo is the canonical spec-conformant
+  stand-in that this emulator depends on for offline runs.
+- `rvl-sbqr-fi-gateway` — the FI Backend BFF that this emulator talks to.
+- `rvl-sbqr-workspace` *(planned)* — a thin umbrella repo that orchestrates
+  bringing these repos up side-by-side.
