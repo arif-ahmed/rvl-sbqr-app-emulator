@@ -44,41 +44,27 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      # vercel.json declares explicit `builds` (because plain Vite does not
-      # bundle api/ serverless functions on its own). When `builds` is set,
-      # `vercel deploy` no longer runs the build server-side — it expects a
-      # prebuilt `.vercel/output/` directory. So we run `vercel build` first
-      # and ship the result with `--prebuilt`.
+      # Vercel runs the build itself — it reads vercel.json's buildCommand
+      # (npm run build) and injects build-time env vars (BFF_URL, IDP_URL)
+      # via --build-env. The Vite config then bakes them into the bundle.
+      # Runtime env vars (also IDP_URL / BFF_URL, used by the /api/proxy
+      # server-side function in api/proxy/[...path].ts) are set on the
+      # Vercel project via the dashboard / `vercel env add`.
       #
-      # `vercel build` does NOT accept `--build-env` (that's a deploy-only
-      # flag). Build-time env vars are passed as plain shell env vars — the
-      # Vite build reads them via `loadEnv` and bakes them into the bundle
-      # via `define`.
-      #
-      # `--project` (the Vercel project ID) tells the build which existing
-      # project to target. Without it the CLI tries to auto-link a new
-      # project, which fails with "Could not retrieve Project Settings".
-      # We do NOT pass `--scope` — the token + project id is enough for the
-      # CLI to find the right org, and `--scope team_xxx` was returning
-      # "User not found" (it's a user lookup, not an org lookup).
-      - name: Build with Vercel CLI
-        run: |
-          vercel build --yes \
-            --token ${{ secrets[matrix.token_secret] }} \
-            --project ${{ secrets[matrix.project_secret] }}
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          BFF_URL: ${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}
-          IDP_URL: ${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}
-
+      # Why not --prebuilt? Earlier attempts to use `builds` + `vercel
+      # build` + `vercel deploy --prebuilt` failed with "Could not retrieve
+      # Project Settings" because the runner had no `.vercel/` link to the
+      # user's project. Letting Vercel run the build server-side avoids
+      # that entirely — and we pin `regions: ["iad1"]` in vercel.json so
+      # the rewrite runs in a region with reliable outbound DNS to fly.io.
       - name: Deploy to Vercel
         id: vercel-deploy
         run: |
-          vercel deploy --yes --prebuilt \
+          vercel deploy --yes \
             --token ${{ secrets[matrix.token_secret] }} \
-            --project ${{ secrets[matrix.project_secret] }} \
-            --target production
+            --target production \
+            --build-env BFF_URL="${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}" \
+            --build-env IDP_URL="${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}"
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
