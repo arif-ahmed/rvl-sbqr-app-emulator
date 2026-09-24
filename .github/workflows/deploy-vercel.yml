@@ -55,15 +55,16 @@ jobs:
       # Vite build reads them via `loadEnv` and bakes them into the bundle
       # via `define`.
       #
-      # `--project` (the Vercel project ID) and `--scope` (the org/user)
-      # tell the build exactly which existing project to target — without
-      # them the CLI would auto-create a new project on first run, ignoring
-      # the secret env vars.
+      # `--project` (the Vercel project ID) tells the build which existing
+      # project to target. Without it the CLI tries to auto-link a new
+      # project, which fails with "Could not retrieve Project Settings".
+      # We do NOT pass `--scope` — the token + project id is enough for the
+      # CLI to find the right org, and `--scope team_xxx` was returning
+      # "User not found" (it's a user lookup, not an org lookup).
       - name: Build with Vercel CLI
         run: |
           vercel build --yes \
             --token ${{ secrets[matrix.token_secret] }} \
-            --scope ${{ secrets.VERCEL_ORG_ID }} \
             --project ${{ secrets[matrix.project_secret] }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
@@ -76,7 +77,6 @@ jobs:
         run: |
           vercel deploy --yes --prebuilt \
             --token ${{ secrets[matrix.token_secret] }} \
-            --scope ${{ secrets.VERCEL_ORG_ID }} \
             --project ${{ secrets[matrix.project_secret] }} \
             --target production
         env:
