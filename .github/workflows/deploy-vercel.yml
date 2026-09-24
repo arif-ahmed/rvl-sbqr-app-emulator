@@ -1,0 +1,61 @@
+name: Deploy to Vercel (per FI)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      fi:
+        description: "FI id to deploy (must match a project name below)"
+        required: true
+        default: "dhakabank"
+
+# One Vercel project per FI. Each project has its own BFF_URL / IDP_URL
+# (and optionally its own domain like dhakabank.emulator.app).
+#
+# Required secrets / variables:
+#   VERCEL_TOKEN                       — token with deploy rights
+#   VERCEL_PROJECT_ID_DHAKABANK        — Vercel project id for Dhaka Bank
+#
+# Optional GitHub Actions variables (override defaults baked from fis.json):
+#   BFF_URL_DHAKABANK
+#   IDP_URL_DHAKABANK
+jobs:
+  deploy:
+    name: Deploy ${{ matrix.fi }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fi: dhakabank
+            token_secret: VERCEL_TOKEN
+            project_secret: VERCEL_PROJECT_ID_DHAKABANK
+            bff_url_default: "https://fi-bff-dhakabank.fly.dev"
+            idp_url_default: "https://fi-idp-dhakabank.fly.dev"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build with FI env
+        run: npm run build
+        env:
+          # Override the defaults baked into vite.config.ts. Set GitHub
+          # Actions variables BFF_URL_DHAKABANK / IDP_URL_DHAKABANK to change.
+          BFF_URL: ${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}
+          IDP_URL: ${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel
+        id: vercel-deploy
+        run: |
+          vercel deploy --yes --prebuilt \
+            --token ${{ secrets[matrix.token_secret] }} \
+            --target production
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}

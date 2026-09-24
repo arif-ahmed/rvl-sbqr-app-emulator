@@ -1,0 +1,4 @@
+# Cloudflare Pages — env vars BFF_URL / IDP_URL must be set in the Pages project UI.
+/bff/*  https://${BFF_URL}/:splat  200
+/idp/*  https://${IDP_URL}/:splat  200
+/*      /index.html                 200

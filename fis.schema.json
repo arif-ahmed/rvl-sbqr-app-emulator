@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FI registry",
+  "type": "object",
+  "required": ["fIs"],
+  "properties": {
+    "fIs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "bffUrl", "idpUrl"],
+        "properties": {
+          "id":                { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "displayName":       { "type": "string" },
+          "bffUrl":            { "type": "string", "description": "BFF host (no scheme, no path)" },
+          "idpUrl":            { "type": "string", "description": "IdP host (no scheme, no path)" },
+          "domain":            { "type": "string", "description": "Custom domain for this FI's emulator" },
+          "vercelProjectIdEnv": { "type": "string", "description": "Env var name holding the Vercel project id" }
+        }
+      }
+    }
+  }
+}

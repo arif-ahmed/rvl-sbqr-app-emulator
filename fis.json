@@ -1,0 +1,14 @@
+{
+  "$schema": "./fis.schema.json",
+  "fIs": [
+    {
+      "id": "dhakabank",
+      "displayName": "Dhaka Bank (primary)",
+      "bffUrl": "fi-bff-dhakabank.fly.dev",
+      "idpUrl": "fi-idp-dhakabank.fly.dev",
+      "domain": "emulator.dhakabank.dev",
+      "vercelProjectIdEnv": "VERCEL_PROJECT_ID_DHAKABANK",
+      "notes": "IdP is live. Gateway is not yet hosted — using a placeholder fly.dev URL until the BFF is deployed."
+    }
+  ]
+}
