@@ -1,0 +1,30 @@
+{
+  "name": "rvl-sbqr-sdk-emulator",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Web emulator of an FI mobile banking app exercising BanglaQR P2P generate / validate / pay against the FI BFF.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9"
+  }
+}
