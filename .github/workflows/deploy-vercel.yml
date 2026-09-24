@@ -15,6 +15,7 @@ on:
 #
 # Required secrets / variables:
 #   VERCEL_TOKEN                       — token with deploy rights
+#   VERCEL_ORG_ID                      — Vercel team/user id (required by Vercel CLI 60+)
 #   VERCEL_PROJECT_ID_DHAKABANK        — Vercel project id for Dhaka Bank
 #
 # Optional GitHub Actions variables (override defaults baked from fis.json):
@@ -37,7 +38,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
       - name: Build with FI env
@@ -59,3 +60,4 @@ jobs:
             --target production
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
