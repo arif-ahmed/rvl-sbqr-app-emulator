@@ -55,17 +55,16 @@ jobs:
       # Vite build reads them via `loadEnv` and bakes them into the bundle
       # via `define`.
       #
-      # `--scope` forces the build to fetch the project settings from the
-      # team/user that owns the Vercel project (matches VERCEL_ORG_ID). If a
-      # local `.vercel/project.json` is present (e.g. from a previous `vercel
-      # link` on a dev machine), it shadows the env vars and points at a
-      # different project — hence `rm -rf .vercel` first.
+      # `--project` (the Vercel project ID) and `--scope` (the org/user)
+      # tell the build exactly which existing project to target — without
+      # them the CLI would auto-create a new project on first run, ignoring
+      # the secret env vars.
       - name: Build with Vercel CLI
         run: |
-          rm -rf .vercel
           vercel build --yes \
             --token ${{ secrets[matrix.token_secret] }} \
-            --scope ${{ secrets.VERCEL_ORG_ID }}
+            --scope ${{ secrets.VERCEL_ORG_ID }} \
+            --project ${{ secrets[matrix.project_secret] }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -78,6 +77,7 @@ jobs:
           vercel deploy --yes --prebuilt \
             --token ${{ secrets[matrix.token_secret] }} \
             --scope ${{ secrets.VERCEL_ORG_ID }} \
+            --project ${{ secrets[matrix.project_secret] }} \
             --target production
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
