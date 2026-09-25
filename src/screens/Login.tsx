@@ -87,6 +87,11 @@ export function Login() {
           Log In
         </Button>
 
+        <p className="login__sandbox-note">
+          Sandbox environment — these are fake demo accounts. Never enter real banking
+          credentials here.
+        </p>
+
         <div className="login__demo">
           <span>Demo account holders · password <code>&lt;user&gt;@1234</code></span>
           <div className="login__chips">

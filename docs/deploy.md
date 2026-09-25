@@ -91,7 +91,12 @@ entry to `.github/workflows/deploy-vercel.yml`).
 ## Vercel: recommended setup
 
 ### One-time
-1. Create one Vercel project for Dhaka Bank (e.g. `rvl-sbqr-emulator-dhakabank`).
+1. Create one Vercel project (e.g. `rvl-sbqr-app-emulator`). Keep the project name
+   (and therefore its default `*.vercel.app` hostname) generic — don't bake the FI
+   name into it. Public URLs that pair a real financial institution's name/branding
+   with a login form on an unrelated third-party domain read as textbook phishing to
+   automated Safe Browsing–style scanners, even when the content is a sandbox. FI
+   selection belongs in `fis.json` / build-time env vars, not the hostname.
 2. Per project, set environment variables:
    - `BFF_URL` = `https://fi-bff-dhakabank.fly.dev` *(placeholder until BFF is hosted)*
    - `IDP_URL` = `https://fi-idp-dhakabank.fly.dev`

@@ -1,6 +1,8 @@
-# Provisioning Vercel — Dhaka Bank emulator
+# Provisioning Vercel — SBQR emulator
 
-These commands set up everything Vercel-side for the Dhaka Bank emulator project.
+These commands set up everything Vercel-side for the SBQR emulator project. The
+project name is kept generic on purpose (no FI name in the public `*.vercel.app`
+hostname) — see [docs/deploy.md](../docs/deploy.md#vercel-recommended-setup) for why.
 Run them locally (or in CI) — **not** from an automated agent, since they create
 real cloud resources and credentials.
 
@@ -32,10 +34,10 @@ want to deploy locally with `vercel deploy` without specifying `--project`.
 > ⚠️ `.vercel/project.json` is project-specific and should be gitignored. Add it to
 > `.gitignore` if not already there.
 
-## 2. Create the Dhaka Bank project
+## 2. Create the project
 
 ```bash
-vercel project add rvl-sbqr-emulator-dhakabank \
+vercel project add rvl-sbqr-app-emulator \
   --framework vite
 ```
 
@@ -43,8 +45,10 @@ Notes:
 - `--framework vite` tells Vercel to use the Vite build preset (auto-detected
   anyway from `vercel.json`, but explicit is safer).
 - The project will appear under your default Vercel team / scope.
-- Project name `rvl-sbqr-emulator-dhakabank` must be globally unique across
+- Project name `rvl-sbqr-app-emulator` must be globally unique across
   `*.vercel.app`; if it's taken, Vercel will tell you and you can pick another.
+  Keep it FI-agnostic — which institution is emulated is a `fis.json` /
+  build-env concern, not part of the public hostname.
 
 After creation, fetch the project id:
 ```bash
@@ -61,7 +65,7 @@ Vercel supports four environments per project: `production`, `preview`, `develop
 and the global scope. For each, set the vars we need:
 
 ```bash
-PROJECT=rvl-sbqr-emulator-dhakabank
+PROJECT=rvl-sbqr-app-emulator
 
 # Production
 vercel env add BFF_URL           production --project $PROJECT
@@ -97,7 +101,7 @@ Don't reuse your personal login token — create a dedicated token for CI:
 Steps:
 1. Open https://vercel.com/account/settings/tokens
 2. Click **Create Token**
-3. Name: `gh-actions-dhakabank`
+3. Name: `gh-actions-sbqr-emulator`
 4. Scope: your account (or the team that owns the project)
 5. Expiration: pick a sensible window (90 days is common)
 6. **Copy the token value** — you will not see it again.
@@ -128,7 +132,7 @@ If `emulator.dhakabank.dev` (or whichever you picked in `fis.json`) should point
 to this project:
 
 ```bash
-vercel domains add emulator.dhakabank.dev --project rvl-sbqr-emulator-dhakabank
+vercel domains add emulator.dhakabank.dev --project rvl-sbqr-app-emulator
 ```
 
 Vercel will print the DNS records you need to add at your registrar (typically a
@@ -151,22 +155,22 @@ gh run watch --repo arif-ahmed/rvl-sbqr-app-emulator
 
 | What                          | Where it lives                                   |
 |-------------------------------|--------------------------------------------------|
-| Project name                  | `rvl-sbqr-emulator-dhakabank` (Vercel)           |
+| Project name                  | `rvl-sbqr-app-emulator` (Vercel)           |
 | Project id                    | `prj_xxx` → GitHub secret `VERCEL_PROJECT_ID_DHAKABANK` |
 | Token                         | Vercel dashboard → GitHub secret `VERCEL_TOKEN`  |
-| Env vars                      | `vercel env ls --project rvl-sbqr-emulator-dhakabank` |
-| Custom domain                 | `vercel domains ls --project rvl-sbqr-emulator-dhakabank` |
+| Env vars                      | `vercel env ls --project rvl-sbqr-app-emulator` |
+| Custom domain                 | `vercel domains ls --project rvl-sbqr-app-emulator` |
 
 ## When the BFF goes live
 
 ```bash
-vercel env rm BFF_URL production --project rvl-sbqr-emulator-dhakabank
-vercel env add BFF_URL production --project rvl-sbqr-emulator-dhakabank
+vercel env rm BFF_URL production --project rvl-sbqr-app-emulator
+vercel env add BFF_URL production --project rvl-sbqr-app-emulator
 # paste https://real-bff.dhakabank.dev when prompted
 
 # Preview env too
-vercel env rm BFF_URL preview --project rvl-sbqr-emulator-dhakabank
-vercel env add BFF_URL preview --project rvl-sbqr-emulator-dhakabank
+vercel env rm BFF_URL preview --project rvl-sbqr-app-emulator
+vercel env add BFF_URL preview --project rvl-sbqr-app-emulator
 ```
 
 Then push any tiny change (or rerun the workflow) to rebuild with the new BFF

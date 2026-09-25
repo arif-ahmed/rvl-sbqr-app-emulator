@@ -82,6 +82,20 @@ code,
 }
 
 /* ── Stage (page layout) ───────────────────────────────────────────── */
+.sandbox-banner {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
 .stage {
   display: flex;
   gap: 40px;
@@ -1006,6 +1020,16 @@ code,
   gap: 6px;
   align-items: center;
   color: var(--ink-2);
+}
+.login__sandbox-note {
+  background: var(--amber-50);
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
 }
 .login__demo {
   border-top: 1px solid var(--line);

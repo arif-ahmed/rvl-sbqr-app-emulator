@@ -96,6 +96,10 @@ function Stage() {
 export function App() {
   return (
     <SessionProvider>
+      <div className="sandbox-banner" role="alert">
+        SBQR TEST ENVIRONMENT — SDK emulator, not a real bank. Do not enter real banking
+        credentials.
+      </div>
       <main className="stage">
         <section className="stage__device">
           <div className="stage__caption">
