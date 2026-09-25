@@ -88,7 +88,7 @@ entry to `.github/workflows/deploy-vercel.yml`).
 ## Vercel: recommended setup
 
 ### One-time
-1. Create one Vercel project (e.g. `rvl-sbqr-app-emulator`). Keep the project name
+1. Create one Vercel project (e.g. `sbqr-sdk-sandbox`). Keep the project name
    (and therefore its default `*.vercel.app` hostname) generic — don't bake the FI
    name into it. Public URLs that pair a real financial institution's name/branding
    with a login form on an unrelated third-party domain read as textbook phishing to

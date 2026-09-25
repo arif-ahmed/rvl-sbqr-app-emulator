@@ -37,7 +37,7 @@ want to deploy locally with `vercel deploy` without specifying `--project`.
 ## 2. Create the project
 
 ```bash
-vercel project add rvl-sbqr-app-emulator \
+vercel project add sbqr-sdk-sandbox \
   --framework vite
 ```
 
@@ -45,7 +45,7 @@ Notes:
 - `--framework vite` tells Vercel to use the Vite build preset (auto-detected
   anyway from `vercel.json`, but explicit is safer).
 - The project will appear under your default Vercel team / scope.
-- Project name `rvl-sbqr-app-emulator` must be globally unique across
+- Project name `sbqr-sdk-sandbox` must be globally unique across
   `*.vercel.app`; if it's taken, Vercel will tell you and you can pick another.
   Keep it FI-agnostic — which institution is emulated is a `fis.json` /
   build-env concern, not part of the public hostname.
@@ -65,7 +65,7 @@ Vercel supports four environments per project: `production`, `preview`, `develop
 and the global scope. For each, set the vars we need:
 
 ```bash
-PROJECT=rvl-sbqr-app-emulator
+PROJECT=sbqr-sdk-sandbox
 
 # Production
 vercel env add BFF_URL           production --project $PROJECT
@@ -132,7 +132,7 @@ If `emulator.dhakabank.dev` (or whichever you picked in `fis.json`) should point
 to this project:
 
 ```bash
-vercel domains add emulator.dhakabank.dev --project rvl-sbqr-app-emulator
+vercel domains add emulator.dhakabank.dev --project sbqr-sdk-sandbox
 ```
 
 Vercel will print the DNS records you need to add at your registrar (typically a
@@ -155,22 +155,22 @@ gh run watch --repo arif-ahmed/rvl-sbqr-app-emulator
 
 | What                          | Where it lives                                   |
 |-------------------------------|--------------------------------------------------|
-| Project name                  | `rvl-sbqr-app-emulator` (Vercel)           |
+| Project name                  | `sbqr-sdk-sandbox` (Vercel)           |
 | Project id                    | `prj_xxx` → GitHub secret `VERCEL_PROJECT_ID_DHAKABANK` |
 | Token                         | Vercel dashboard → GitHub secret `VERCEL_TOKEN`  |
-| Env vars                      | `vercel env ls --project rvl-sbqr-app-emulator` |
-| Custom domain                 | `vercel domains ls --project rvl-sbqr-app-emulator` |
+| Env vars                      | `vercel env ls --project sbqr-sdk-sandbox` |
+| Custom domain                 | `vercel domains ls --project sbqr-sdk-sandbox` |
 
 ## If the BFF URL changes again
 
 ```bash
-vercel env rm BFF_URL production --project rvl-sbqr-app-emulator
-vercel env add BFF_URL production --project rvl-sbqr-app-emulator
+vercel env rm BFF_URL production --project sbqr-sdk-sandbox
+vercel env add BFF_URL production --project sbqr-sdk-sandbox
 # paste the new URL when prompted
 
 # Preview env too
-vercel env rm BFF_URL preview --project rvl-sbqr-app-emulator
-vercel env add BFF_URL preview --project rvl-sbqr-app-emulator
+vercel env rm BFF_URL preview --project sbqr-sdk-sandbox
+vercel env add BFF_URL preview --project sbqr-sdk-sandbox
 ```
 
 Then push any tiny change (or rerun the workflow) to rebuild with the new BFF

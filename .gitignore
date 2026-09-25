@@ -20,3 +20,5 @@ tmp/
 test-results/
 e2e-report/
 e2e-evidence/
+
+.env*
