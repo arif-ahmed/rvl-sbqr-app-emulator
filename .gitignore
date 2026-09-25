@@ -15,3 +15,8 @@ tmp/
 .puku-cli/
 
 .vercel
+
+# Playwright e2e output
+test-results/
+e2e-report/
+e2e-evidence/

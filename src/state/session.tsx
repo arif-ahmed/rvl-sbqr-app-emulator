@@ -2,9 +2,9 @@
 // so two tabs can be two different customers paying each other.
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
-import { isFresh, signIn, type Tokens } from '../api/auth';
+import { AuthError, isFresh, refresh, signIn, type Tokens } from '../api/auth';
 import type { TokenSource } from '../api/qr';
-import { DEMO_PASSWORD, findCustomer, type Customer } from '../data/customers';
+import { findCustomer, type Customer } from '../data/customers';
 
 interface Stored {
   username: string;
@@ -16,7 +16,7 @@ interface SessionValue {
   tokens: Tokens | null;
   login(username: string, password: string): Promise<void>;
   logout(): void;
-  /** Bearer supplier for BFF calls; silently re-authenticates (emulates a refresh token). */
+  /** Bearer supplier for BFF calls; silently refreshes via the IdP refresh token. */
   tokenSource: TokenSource;
 }
 
@@ -47,6 +47,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [stored, setStored] = useState<Stored | null>(load);
   const ref = useRef(stored);
   ref.current = stored;
+  // Refresh tokens rotate, so concurrent BFF calls must share one refresh.
+  const refreshing = useRef<Promise<string> | null>(null);
 
   const customer = stored ? (findCustomer(stored.username) ?? null) : null;
 
@@ -58,10 +60,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (username: string, password: string) => {
-      const c = findCustomer(username);
-      if (!c || password !== DEMO_PASSWORD) throw new LoginError('Incorrect user ID or password.');
-      const tokens = await signIn(c.username, c.name);
-      update({ username: c.username, tokens });
+      const id = username.trim().toLowerCase();
+      let tokens: Tokens;
+      try {
+        tokens = await signIn(id, password);
+      } catch (e) {
+        if (e instanceof AuthError) throw new LoginError(e.message);
+        throw e;
+      }
+      if (!findCustomer(id)) throw new LoginError('This account has no demo profile in the emulator.');
+      update({ username: id, tokens });
     },
     [update],
   );
@@ -73,10 +81,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const s = ref.current;
       if (!s) throw new LoginError('Not logged in.');
       if (!forceRefresh && isFresh(s.tokens)) return s.tokens.accessToken;
-      const c = findCustomer(s.username)!;
-      const tokens = await signIn(c.username, c.name);
-      update({ username: s.username, tokens });
-      return tokens.accessToken;
+      refreshing.current ??= refresh(s.tokens.refreshToken)
+        .then((tokens) => {
+          update({ username: s.username, tokens });
+          return tokens.accessToken;
+        })
+        .catch((e) => {
+          // IdP unreachable: keep the session and let the caller report it.
+          if (!(e instanceof AuthError)) throw e;
+          update(null);
+          throw new LoginError('Your session has expired. Please log in again.');
+        })
+        .finally(() => {
+          refreshing.current = null;
+        });
+      return refreshing.current;
     },
     [update],
   );

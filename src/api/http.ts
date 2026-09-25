@@ -24,11 +24,9 @@ export class ApiError extends Error {
   }
 }
 
-// Same-origin prefix in production, served by /api/proxy/[...path].ts (a Node
-// serverless function that forwards to IDP_URL / BFF_URL). In dev, the same
-// path is handled by the Vite server proxy in vite.config.ts. Either way
-// the browser always sees a same-origin URL, so no CORS is needed.
-const PREFIX: Record<NetTarget, string> = { BFF: '/api/proxy/bff', IdP: '/api/proxy/idp' };
+// Same-origin paths, forwarded server-side because the FI IdP / BFF have no
+// CORS: by the Vite proxy in dev (vite.config.ts), by vercel.json rewrites in prod.
+const PREFIX: Record<NetTarget, string> = { BFF: '/bff', IdP: '/idp' };
 
 export interface RequestOptions {
   bearer?: string;
@@ -37,6 +35,9 @@ export interface RequestOptions {
 
 function problemMessage(status: number, body: unknown): string {
   if (body && typeof body === 'object') {
+    // OAuth2 error (RFC 6749 §5.2) from the IdP token endpoint.
+    const oauth = body as { error_description?: unknown };
+    if (typeof oauth.error_description === 'string' && oauth.error_description) return oauth.error_description;
     const p = body as ProblemDetails;
     const fieldErrors = p.errors ? Object.values(p.errors).flat().join(' ') : '';
     const text = [p.title, p.detail, fieldErrors].filter(Boolean).join(' — ');
@@ -48,22 +49,48 @@ function problemMessage(status: number, body: unknown): string {
   return `Request failed with HTTP ${status}.`;
 }
 
-export async function postJson<T>(target: NetTarget, path: string, body: unknown, opts: RequestOptions = {}): Promise<T> {
+export function postJson<T>(target: NetTarget, path: string, body: unknown, opts: RequestOptions = {}): Promise<T> {
+  return post<T>(target, path, 'application/json', JSON.stringify(body), body, opts);
+}
+
+/**
+ * application/x-www-form-urlencoded POST — the encoding OAuth2 token endpoints
+ * require. Fields listed in `secretFields` are masked in the dev-panel log.
+ */
+export function postForm<T>(
+  target: NetTarget,
+  path: string,
+  fields: Record<string, string>,
+  secretFields: string[] = [],
+  opts: RequestOptions = {},
+): Promise<T> {
+  const logged = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, secretFields.includes(k) ? '••••••' : v]));
+  return post<T>(target, path, 'application/x-www-form-urlencoded', new URLSearchParams(fields).toString(), logged, opts);
+}
+
+async function post<T>(
+  target: NetTarget,
+  path: string,
+  contentType: string,
+  payload: string,
+  loggedBody: unknown,
+  opts: RequestOptions,
+): Promise<T> {
   const correlationId = target === 'BFF' ? crypto.randomUUID() : undefined;
   const headers: Record<string, string> = {
-    'content-type': 'application/json',
+    'content-type': contentType,
     accept: 'application/json',
     ...opts.headers,
   };
   if (opts.bearer) headers.authorization = `Bearer ${opts.bearer}`;
   if (correlationId) headers['x-correlation-id'] = correlationId;
 
-  const id = netlog.start({ target, method: 'POST', path, requestBody: body, correlationId });
+  const id = netlog.start({ target, method: 'POST', path, requestBody: loggedBody, correlationId });
   const started = performance.now();
 
   let res: Response;
   try {
-    res = await fetch(`${PREFIX[target]}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
+    res = await fetch(`${PREFIX[target]}${path}`, { method: 'POST', headers, body: payload });
   } catch (e) {
     const msg = `Network error: ${(e as Error).message}`;
     netlog.finish(id, { ms: Math.round(performance.now() - started), error: msg, status: 0 });

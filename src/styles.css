@@ -918,6 +918,10 @@ code,
 }
 .login__hero {
   position: relative;
+  /* Keep .login__glow (right:-100px) from widening .login: its overflow-y:auto
+     makes the x-axis scrollable too, and focusing a field scrolled it sideways.
+     `clip` (unlike `hidden`) does not create a programmatically scrollable box. */
+  overflow: clip;
   padding: 92px 24px 30px;
   color: #fff;
   display: flex;

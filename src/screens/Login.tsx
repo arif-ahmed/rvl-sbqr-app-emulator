@@ -4,7 +4,7 @@ import { Icon } from '../components/Icon';
 import { Banner, Button } from '../components/ui';
 import { BankMark } from '../components/widgets';
 import { BRAND } from '../config';
-import { CUSTOMERS, DEMO_PASSWORD } from '../data/customers';
+import { CUSTOMERS, demoPassword } from '../data/customers';
 import { LoginError, useSession } from '../state/session';
 
 export function Login() {
@@ -88,7 +88,7 @@ export function Login() {
         </Button>
 
         <div className="login__demo">
-          <span>Demo account holders · password <code>{DEMO_PASSWORD}</code></span>
+          <span>Demo account holders · password <code>&lt;user&gt;@1234</code></span>
           <div className="login__chips">
             {CUSTOMERS.map((c) => (
               <button
@@ -97,7 +97,7 @@ export function Login() {
                 className="demochip"
                 onClick={() => {
                   setUsername(c.username);
-                  setPassword(DEMO_PASSWORD);
+                  setPassword(demoPassword(c.username));
                   setError(null);
                 }}
               >

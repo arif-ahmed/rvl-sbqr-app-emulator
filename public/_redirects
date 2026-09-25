@@ -1,7 +1,0 @@
-# Cloudflare Pages — env vars BFF_URL / IDP_URL must be set in the Pages project UI.
-# The browser calls /api/proxy/{idp,bff}/*; Cloudflare has no Vercel-style
-# serverless function directory, so we map directly to the upstream here.
-# Cloudflare's edge doesn't suffer the Vercel POP-DNS issue we hit.
-/api/proxy/bff/*  https://${BFF_URL}/:splat  200
-/api/proxy/idp/*  https://${IDP_URL}/:splat  200
-/*                /index.html                 200

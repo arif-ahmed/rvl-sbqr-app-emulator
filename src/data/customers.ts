@@ -81,8 +81,8 @@ export const CUSTOMERS: Customer[] = [
   },
 ];
 
-/** Demo password accepted for every user (the dev IdP never sees it). */
-export const DEMO_PASSWORD = '1234';
+/** Published fake password of each fi-idp-mock seed user (`<username>@1234`); the IdP checks it. */
+export const demoPassword = (username: string) => `${username}@1234`;
 
 export function findCustomer(username: string): Customer | undefined {
   return CUSTOMERS.find((c) => c.username === username.trim().toLowerCase());

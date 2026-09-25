@@ -3,16 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm ci",
-  "regions": ["iad1"],
   "rewrites": [
-    {
-      "source": "/api/proxy/idp/(.*)",
-      "destination": "https://${IDP_URL}/$1"
-    },
-    {
-      "source": "/api/proxy/bff/(.*)",
-      "destination": "https://${BFF_URL}/$1"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
