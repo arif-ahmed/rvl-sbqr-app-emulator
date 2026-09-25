@@ -11,9 +11,9 @@ export function BankMark({ size = 40, light }: { size?: number; light?: boolean 
   return (
     <div className={`bankmark ${light ? 'bankmark--light' : ''}`} style={{ width: size, height: size }} aria-hidden="true">
       <svg viewBox="0 0 40 40" width={size} height={size}>
-        <rect width="40" height="40" rx="11" fill={light ? '#ffffff' : '#0a2a5e'} />
-        <path d="M11 12h8.5a8 8 0 0 1 0 16H11z" fill="none" stroke={light ? '#0a2a5e' : '#ffffff'} strokeWidth="3.2" />
-        <circle cx="29" cy="13" r="3.4" fill="#e31e24" />
+        <rect width="40" height="40" rx="11" fill={light ? '#ffffff' : '#2d2a5c'} />
+        <path d="M11 12h8.5a8 8 0 0 1 0 16H11z" fill="none" stroke={light ? '#2d2a5c' : '#ffffff'} strokeWidth="3.2" />
+        <circle cx="29" cy="13" r="3.4" fill="#0d9488" />
       </svg>
     </div>
   );

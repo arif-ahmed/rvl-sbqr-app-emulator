@@ -1,10 +1,18 @@
 // Branding of the emulated FI app. Only affects presentation — the
 // institution encoded in Tag 26 of generated QRs is decided by sbqr.api
 // from the FI's tenant registration, not by the app.
+//
+// Deliberately fictional. This UI renders a realistic mobile-banking login
+// form (user ID + password) on a throwaway vercel.app host, and Google Safe
+// Browsing repeatedly flagged the app as phishing when this said "Dhaka
+// Bank" — a real institution's name and tagline — even after the deploy
+// domain was made FI-agnostic. Backend URLs (fi-idp-dhakabank.fly.dev,
+// rvl-sbqr-fi-gateway.fly.dev) still identify the real sandbox FI; keep this
+// display name generic regardless of which backend is wired up.
 export const BRAND = {
-  bankName: 'Dhaka Bank',
-  appName: 'Dhaka Bank · Mobile',
-  tagline: 'Excellence in Banking',
+  bankName: 'Demo Bank',
+  appName: 'Demo Bank · Mobile (Sandbox)',
+  tagline: 'Fictional bank — for testing only',
   /** Annex A code of the emulated FI (type 00 = Bank, ID 0085 = Dhaka Bank PLC). */
   institutionCode: '000085',
 };

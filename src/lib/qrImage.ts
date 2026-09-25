@@ -88,8 +88,8 @@ export async function qrCardPng(payload: string, info: QrCardInfo): Promise<Blob
 
   // Card background
   const grad = ctx.createLinearGradient(0, 0, W, 260);
-  grad.addColorStop(0, '#0a2a5e');
-  grad.addColorStop(1, '#1463d6');
+  grad.addColorStop(0, '#2d2a5c');
+  grad.addColorStop(1, '#6366f1');
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = grad;

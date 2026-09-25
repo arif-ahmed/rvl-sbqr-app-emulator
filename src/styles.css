@@ -1,15 +1,18 @@
 /* ── Tokens ─────────────────────────────────────────────────────────────
-   Dhaka Bank-inspired: deep navy + royal blue, red accent from the mark. */
+   Deliberately generic palette — indigo/violet, teal accent. Not modeled on
+   any real FI's brand colors (previously a Dhaka Bank-inspired navy + red
+   scheme, which contributed to Google Safe Browsing flagging this deploy as
+   brand-impersonation phishing; see src/config.ts BRAND). */
 :root {
-  --brand-950: #061a3d;
-  --brand-900: #0a2a5e;
-  --brand-800: #0d3a80;
-  --brand-700: #0f4c9e;
-  --brand-600: #1463d6;
-  --brand-500: #2b74f0;
-  --brand-100: #dbe7fd;
-  --brand-50: #eef4ff;
-  --accent: #e31e24;
+  --brand-950: #1e1b3a;
+  --brand-900: #2d2a5c;
+  --brand-800: #3730a3;
+  --brand-700: #4338ca;
+  --brand-600: #4f46e5;
+  --brand-500: #6366f1;
+  --brand-100: #e0e7ff;
+  --brand-50: #eef2ff;
+  --accent: #0d9488;
 
   --ink: #0f172a;
   --ink-2: #334155;
@@ -1090,7 +1093,7 @@ code,
   color: #fff;
 }
 .bqr-bangla {
-  color: #e31e24;
+  color: var(--accent);
   font-weight: 900;
   letter-spacing: 0.02em;
 }
