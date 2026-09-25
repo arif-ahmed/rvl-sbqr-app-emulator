@@ -9,12 +9,6 @@ import { ledger } from '../state/ledger';
 import { sim, useSim, type ForcedOutcome } from '../state/sim';
 import { Icon } from './Icon';
 
-// Where the browser sends proxy requests. Injected by Vite at build time from
-// VITE_PROXY_ORIGIN. Empty in dev → Vite dev proxy answers same-origin.
-declare const __PROXY_ORIGIN__: string;
-const PROXY_ORIGIN: string =
-  typeof __PROXY_ORIGIN__ !== 'undefined' && __PROXY_ORIGIN__ ? __PROXY_ORIGIN__ : '';
-
 type Health = 'up' | 'down' | 'checking';
 
 async function probe(url: string): Promise<Health> {
@@ -33,8 +27,8 @@ function useHealth() {
   const [bff, setBff] = useState<Health>('checking');
   const [idp, setIdp] = useState<Health>('checking');
   const check = () => {
-    probe(`${PROXY_ORIGIN}/bff/health/ready`).then(setBff);
-    probe(`${PROXY_ORIGIN}/idp/.well-known/openid-configuration`).then(setIdp);
+    probe('/bff/health/ready').then(setBff);
+    probe('/idp/.well-known/openid-configuration').then(setIdp);
   };
   useEffect(() => {
     check();

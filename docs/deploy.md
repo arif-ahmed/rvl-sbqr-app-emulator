@@ -2,7 +2,7 @@
 
 This repo intentionally produces **one build artifact per FI** (financial institution),
 because every FI ships its own BFF and IdP. Each artifact is a Vite-built SPA whose
-`/api/proxy/{idp,bff}/*` calls are proxied server-side to that FI's backend.
+`/idp/*` and `/bff/*` calls are proxied server-side to that FI's backend.
 
 ## Current state — Dhaka Bank (primary)
 
@@ -17,62 +17,56 @@ The repository is currently configured for a single primary FI:
 | Domain       | `emulator.dhakabank.dev`               |
 
 The IdP is live; the **gateway/BFF is not yet hosted**. The emulator will deploy
-and authenticate against the real IdP, but `/api/proxy/bff/*` calls will return
+and authenticate against the real IdP, but `/bff/*` calls will return
 `502` with a clear message until the BFF is brought up at the placeholder URL
 (or the URL is changed).
 
-## Why a server-side proxy (`/api/proxy/*`)?
+## Why a server-side proxy?
 
-The browser always calls same-origin paths `/api/proxy/{idp,bff}/*`. In dev, the
+The browser always calls the same-origin paths `/idp/*` and `/bff/*`. In dev the
 Vite server forwards them to the local IdP/BFF (see `vite.config.ts`). In
-production, the request hits a Node serverless function in `api/proxy/[...path].ts`
-which forwards to `IDP_URL` / `BFF_URL`.
+production the rewrites in `vercel.json` forward them to the FI's hosted IdP/BFF:
 
-Two reasons we can't have the browser hit the IdP directly:
+```json
+{ "source": "/idp/:path*", "destination": "https://fi-idp-dhakabank.fly.dev/:path*" }
+```
 
-1. **No CORS on the FI backends.** The IdP and BFF were built for native mobile
-   callers and don't set CORS headers. A server-side proxy avoids the preflight
-   entirely.
-2. **Reliable outbound network.** Edge-rewrite-based proxies (e.g. Vercel's
-   `vercel.json` rewrites) run inside per-POP DNS resolvers that intermittently
-   fail to resolve external hostnames like `*.fly.dev`, returning 502. A Node
-   serverless function uses Vercel's centralized outbound network and resolves
-   DNS reliably from every region.
+> **Hosts are literal on purpose.** Vercel does not substitute environment
+> variables inside `vercel.json`. An earlier `https://${IDP_URL}/$1` destination
+> was forwarded to a host literally named `${IDP_URL}` and failed every request
+> with `502 DNS_HOSTNAME_NOT_FOUND` — a config bug, not flaky DNS. To point the
+> deployed emulator at a different IdP/BFF, edit `vercel.json`.
+
+The browser can't hit the IdP directly: the IdP and BFF were built for native
+mobile callers and don't set CORS headers, so a direct cross-origin `fetch`
+would fail preflight. `regions: ["iad1"]` pins the rewrite to a single region
+with reliable outbound DNS — earlier, letting Vercel pick the nearest edge POP
+per-request intermittently failed to resolve `*.fly.dev` hosts.
 
 ## Environment variables — what to set
 
-Set these per environment. They are read by `vite.config.ts` at build time
-(`__BFF_TARGET__` / `__IDP_TARGET__`), by `api/proxy/[...path].ts` at runtime
-on the server, and by the host's edge proxies on Netlify/Cloudflare.
+Set these per environment. `vite.config.ts` uses them as the dev proxy targets
+and bakes them into the bundle as the dev-panel labels (`__BFF_TARGET__` /
+`__IDP_TARGET__`). Production forwarding uses the hosts in `vercel.json`.
 
 | Variable             | Local dev (`.env.local`)              | Production (host)                                  |
 |----------------------|---------------------------------------|----------------------------------------------------|
 | `BFF_URL`            | `http://localhost:8080` *(or your FI BFF)* | `https://fi-bff-dhakabank.fly.dev` *(update when BFF is live)* |
 | `IDP_URL`            | `https://fi-idp-dhakabank.fly.dev`    | `https://fi-idp-dhakabank.fly.dev`                 |
-| `VITE_IDP_ISSUER`    | `https://fi-idp-dhakabank.fly.dev`    | `https://fi-idp-dhakabank.fly.dev`                 |
-| `VITE_IDP_AUDIENCE`  | `sbqr-fi-gateway`                     | `sbqr-fi-gateway` *(must match BFF's expected aud)*|
 | `PORT`               | `5173`                                | — *(set by host)*                                  |
 
 > **`VITE_*` prefix matters.** Vite only exposes variables prefixed `VITE_` to the
 > browser bundle. Drop the prefix and the bundle won't see it.
 
-### Why two sets of values?
+No JWT settings are needed: login is the OAuth2 password grant on the IdP's
+`POST /connect/token`, and the IdP stamps `iss` / `aud` into the token. Those
+must match the BFF's `Auth__Issuer` / `Auth__Audience`, which is configured on
+the IdP and BFF, not here.
 
-- `BFF_URL` / `IDP_URL` → consumed by `vite.config.ts` for dev + by
-  `api/proxy/[...path].ts` (Vercel) / `netlify.toml` (Netlify) /
-  `_redirects` (Cloudflare) at runtime.
-- `VITE_IDP_ISSUER` / `VITE_IDP_AUDIENCE` → read inside React code to mint
-  dev tokens (`/mint`) and to validate tokens at the BFF.
+## Hosting
 
-## Host options (all free-tier friendly)
-
-| Host          | Runtime proxy                         | CI strategy                                 |
-|---------------|---------------------------------------|---------------------------------------------|
-| **Vercel**    | `api/proxy/[...path].ts` (Node fn)    | GitHub Actions (`deploy-vercel.yml`) or Vercel Git integration |
-| **Netlify**   | edge redirect in `netlify.toml`       | Netlify Git integration (no GH Actions needed) |
-| **Cloudflare**| edge redirect in `public/_redirects`  | Cloudflare Pages Git integration            |
-
-All three honor `BFF_URL` and `IDP_URL` env vars at deploy time.
+One Vercel project per FI: the static Vite build plus the `/idp` and `/bff`
+rewrites, both from `vercel.json`, deployed by `.github/workflows/deploy-vercel.yml`.
 
 ## Per-FI registry
 
@@ -124,22 +118,11 @@ export VERCEL_PROJECT_ID_DHAKABANK=...
 npm run deploy:fis          # builds & deploys every FI in fis.json
 ```
 
-## Netlify: setup
-1. Create one Netlify site per FI (or one site with environment-targeted branches).
-2. Set `BFF_URL` / `IDP_URL` / `VITE_IDP_ISSUER` / `VITE_IDP_AUDIENCE` per site.
-3. Connect to this repo. Netlify reads `netlify.toml` automatically.
-
-## Cloudflare Pages: setup
-1. Create one Pages project per FI.
-2. Set the four env vars per project.
-3. Connect to this repo. Cloudflare uses `public/_redirects`.
-
 ## BFF CORS — important
 
 Your FI BFF (rvl-sbqr-fi-gateway) was built for native mobile callers and has no CORS
-policy. The `/api/proxy/{idp,bff}/*` server-side proxy avoids browser CORS because the
-browser only sees same-origin requests. **No CORS change is needed** as long as the
-proxy is reachable from the host's edge runtime.
+policy. The `vercel.json` rewrites call it server-side and the browser only sees
+same-origin requests, so **no CORS change is needed on the BFF**.
 
 If you ever switch to direct `fetch(${BFF_URL})` from the browser, you must add CORS
 headers on the BFF for the emulator's deployed origin.
@@ -147,5 +130,3 @@ headers on the BFF for the emulator's deployed origin.
 ## Rollback
 
 - Vercel: `vercel rollback` or "Promote to Production" on a previous deployment.
-- Netlify: "Publish deploy" → pick a prior deploy.
-- Cloudflare: "Rollback to this deploy" on the Pages dashboard.

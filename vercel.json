@@ -3,7 +3,16 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm ci",
+  "regions": ["iad1"],
   "rewrites": [
+    {
+      "source": "/idp/:path*",
+      "destination": "https://fi-idp-dhakabank.fly.dev/:path*"
+    },
+    {
+      "source": "/bff/:path*",
+      "destination": "https://fi-bff-dhakabank.fly.dev/:path*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

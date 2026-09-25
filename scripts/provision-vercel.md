@@ -58,7 +58,7 @@ You need the `projectId` (looks like `prj_xxxxxxxx`) for the next step.
 ## 3. Set environment variables on the project
 
 Vercel supports four environments per project: `production`, `preview`, `development`,
-and the global scope. For each, set the four vars we need:
+and the global scope. For each, set the vars we need:
 
 ```bash
 PROJECT=rvl-sbqr-emulator-dhakabank
@@ -66,11 +66,9 @@ PROJECT=rvl-sbqr-emulator-dhakabank
 # Production
 vercel env add BFF_URL           production --project $PROJECT
 vercel env add IDP_URL           production --project $PROJECT
-vercel env add VITE_IDP_ISSUER   production --project $PROJECT
-vercel env add VITE_IDP_AUDIENCE production --project $PROJECT
 
 # Preview (PR builds — same values for now)
-for var in BFF_URL IDP_URL VITE_IDP_ISSUER VITE_IDP_AUDIENCE; do
+for var in BFF_URL IDP_URL; do
   vercel env add "$var" preview --project $PROJECT
 done
 ```
@@ -80,8 +78,6 @@ Values (paste when prompted):
 |---------------------|---------------------------------------------|
 | `BFF_URL`           | `https://fi-bff-dhakabank.fly.dev` *(placeholder until BFF is hosted)* |
 | `IDP_URL`           | `https://fi-idp-dhakabank.fly.dev`          |
-| `VITE_IDP_ISSUER`   | `https://fi-idp-dhakabank.fly.dev`          |
-| `VITE_IDP_AUDIENCE` | `sbqr-fi-gateway`                           |
 
 Verify:
 ```bash

@@ -10,25 +10,20 @@ on:
         required: true
         default: "dhakabank"
 
-# One Vercel project per FI for the SPA. Each project has its own
-# BFF_URL / IDP_URL / VITE_PROXY_ORIGIN (and optionally its own domain like
-# dhakabank.emulator.app).
+# One Vercel project per FI. Each project has its own BFF_URL / IDP_URL
+# (and optionally its own domain like dhakabank.emulator.app).
 #
-# Architecture: the SPA is pure static. A SEPARATE Vercel project hosts the
-# Node proxy (see deploy-proxy-vercel.yml). The browser calls the proxy
-# cross-origin at /idp/* and /bff/*. VITE_PROXY_ORIGIN is the proxy's full
-# deployment URL.
+# The browser calls same-origin /idp/* and /bff/*; the rewrites in vercel.json
+# forward them to the FI's IdP / BFF (which have no CORS).
 #
 # Required secrets / variables:
 #   VERCEL_TOKEN                       — token with deploy rights
 #   VERCEL_ORG_ID                      — Vercel team/user id (required by Vercel CLI 60+)
-#   VERCEL_PROJECT_ID_DHAKABANK        — Vercel project id for Dhaka Bank SPA
+#   VERCEL_PROJECT_ID_DHAKABANK        — Vercel project id for Dhaka Bank
 #
 # Optional GitHub Actions variables (override defaults):
 #   BFF_URL_DHAKABANK
 #   IDP_URL_DHAKABANK
-#   VITE_PROXY_ORIGIN_DHAKABANK        — full origin of the proxy project
-#                                          (e.g. https://emulator-proxy-dhakabank.vercel.app)
 jobs:
   deploy:
     name: Deploy ${{ matrix.fi }}
@@ -42,7 +37,6 @@ jobs:
             project_secret: VERCEL_PROJECT_ID_DHAKABANK
             bff_url_default: "https://fi-bff-dhakabank.fly.dev"
             idp_url_default: "https://fi-idp-dhakabank.fly.dev"
-            proxy_origin_default: ""
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,9 +49,9 @@ jobs:
 
       # Vercel runs the build itself — it reads vercel.json's buildCommand
       # (npm run build) and injects build-time env vars via --build-env.
-      # The Vite config bakes them into the bundle as compile-time constants.
-      # Runtime env vars for the proxy project are set on the proxy project's
-      # Vercel dashboard / `vercel env add`.
+      # The Vite config bakes them into the bundle as compile-time constants
+      # (dev-panel labels). The actual forwarding targets are the literal hosts
+      # in vercel.json — Vercel does not substitute env vars there.
       #
       # Why not --prebuilt? Earlier attempts to use `builds` + `vercel
       # build` + `vercel deploy --prebuilt` failed with "Could not retrieve
@@ -70,8 +64,7 @@ jobs:
             --token ${{ secrets[matrix.token_secret] }} \
             --target production \
             --build-env BFF_URL="${{ vars.BFF_URL_DHAKABANK || matrix.bff_url_default }}" \
-            --build-env IDP_URL="${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}" \
-            --build-env VITE_PROXY_ORIGIN="${{ vars.VITE_PROXY_ORIGIN_DHAKABANK || matrix.proxy_origin_default }}"
+            --build-env IDP_URL="${{ vars.IDP_URL_DHAKABANK || matrix.idp_url_default }}"
         env:
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_secret] }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
