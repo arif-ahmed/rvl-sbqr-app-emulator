@@ -11,7 +11,7 @@
     },
     {
       "source": "/bff/:path*",
-      "destination": "https://fi-bff-dhakabank.fly.dev/:path*"
+      "destination": "https://rvl-sbqr-fi-gateway.fly.dev/:path*"
     },
     {
       "source": "/(.*)",

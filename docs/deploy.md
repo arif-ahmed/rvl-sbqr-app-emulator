@@ -13,13 +13,10 @@ The repository is currently configured for a single primary FI:
 | `id`         | `dhakabank`                            |
 | `displayName`| Dhaka Bank                             |
 | IdP URL      | `https://fi-idp-dhakabank.fly.dev`     |
-| BFF URL      | `https://fi-bff-dhakabank.fly.dev` *(placeholder — gateway not yet hosted)* |
+| BFF URL      | `https://rvl-sbqr-fi-gateway.fly.dev`  |
 | Domain       | `emulator.dhakabank.dev`               |
 
-The IdP is live; the **gateway/BFF is not yet hosted**. The emulator will deploy
-and authenticate against the real IdP, but `/bff/*` calls will return
-`502` with a clear message until the BFF is brought up at the placeholder URL
-(or the URL is changed).
+Both the IdP and the gateway/BFF (`rvl-sbqr-fi-gateway`) are live on Fly.io.
 
 ## Why a server-side proxy?
 
@@ -51,7 +48,7 @@ and bakes them into the bundle as the dev-panel labels (`__BFF_TARGET__` /
 
 | Variable             | Local dev (`.env.local`)              | Production (host)                                  |
 |----------------------|---------------------------------------|----------------------------------------------------|
-| `BFF_URL`            | `http://localhost:8080` *(or your FI BFF)* | `https://fi-bff-dhakabank.fly.dev` *(update when BFF is live)* |
+| `BFF_URL`            | `http://localhost:8080` *(or your FI BFF)* | `https://rvl-sbqr-fi-gateway.fly.dev` |
 | `IDP_URL`            | `https://fi-idp-dhakabank.fly.dev`    | `https://fi-idp-dhakabank.fly.dev`                 |
 | `PORT`               | `5173`                                | — *(set by host)*                                  |
 
@@ -76,7 +73,7 @@ FIs are declared in [`fis.json`](../fis.json):
 {
   "fIs": [
     { "id": "dhakabank",
-      "bffUrl": "fi-bff-dhakabank.fly.dev",
+      "bffUrl": "rvl-sbqr-fi-gateway.fly.dev",
       "idpUrl": "fi-idp-dhakabank.fly.dev",
       "domain": "emulator.dhakabank.dev",
       "vercelProjectIdEnv": "VERCEL_PROJECT_ID_DHAKABANK" }
@@ -98,7 +95,7 @@ entry to `.github/workflows/deploy-vercel.yml`).
    automated Safe Browsing–style scanners, even when the content is a sandbox. FI
    selection belongs in `fis.json` / build-time env vars, not the hostname.
 2. Per project, set environment variables:
-   - `BFF_URL` = `https://fi-bff-dhakabank.fly.dev` *(placeholder until BFF is hosted)*
+   - `BFF_URL` = `https://rvl-sbqr-fi-gateway.fly.dev`
    - `IDP_URL` = `https://fi-idp-dhakabank.fly.dev`
 3. Add the FI's custom domain (`emulator.dhakabank.dev`) to that project.
 4. Copy the project id → set as a GitHub repo secret
@@ -110,8 +107,8 @@ entry to `.github/workflows/deploy-vercel.yml`).
 - `.github/workflows/deploy-vercel.yml` builds and deploys Dhaka Bank to
   its Vercel project.
 
-### When the BFF goes live
-1. In Vercel project env: update `BFF_URL` to the real gateway URL.
+### If the BFF URL changes again
+1. In Vercel project env: update `BFF_URL`.
 2. In GitHub repo variables (optional): set `BFF_URL_DHAKABANK` so future
    CI runs rebuild with the correct value baked in.
 3. Push a small change to trigger a rebuild. No code change required.

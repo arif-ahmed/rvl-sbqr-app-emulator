@@ -35,7 +35,7 @@ jobs:
           - fi: dhakabank
             token_secret: VERCEL_TOKEN
             project_secret: VERCEL_PROJECT_ID_DHAKABANK
-            bff_url_default: "https://fi-bff-dhakabank.fly.dev"
+            bff_url_default: "https://rvl-sbqr-fi-gateway.fly.dev"
             idp_url_default: "https://fi-idp-dhakabank.fly.dev"
     steps:
       - uses: actions/checkout@v4

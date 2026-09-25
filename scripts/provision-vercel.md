@@ -80,7 +80,7 @@ done
 Values (paste when prompted):
 | Variable            | Value                                       |
 |---------------------|---------------------------------------------|
-| `BFF_URL`           | `https://fi-bff-dhakabank.fly.dev` *(placeholder until BFF is hosted)* |
+| `BFF_URL`           | `https://rvl-sbqr-fi-gateway.fly.dev`       |
 | `IDP_URL`           | `https://fi-idp-dhakabank.fly.dev`          |
 
 Verify:
@@ -161,12 +161,12 @@ gh run watch --repo arif-ahmed/rvl-sbqr-app-emulator
 | Env vars                      | `vercel env ls --project rvl-sbqr-app-emulator` |
 | Custom domain                 | `vercel domains ls --project rvl-sbqr-app-emulator` |
 
-## When the BFF goes live
+## If the BFF URL changes again
 
 ```bash
 vercel env rm BFF_URL production --project rvl-sbqr-app-emulator
 vercel env add BFF_URL production --project rvl-sbqr-app-emulator
-# paste https://real-bff.dhakabank.dev when prompted
+# paste the new URL when prompted
 
 # Preview env too
 vercel env rm BFF_URL preview --project rvl-sbqr-app-emulator

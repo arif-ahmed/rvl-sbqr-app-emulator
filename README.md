@@ -53,7 +53,7 @@ without touching the shared defaults):
 | Variable  | Default (`.env.example`)       | Change it to…                                                                 |
 |-----------|---------------------------------|--------------------------------------------------------------------------------|
 | `IDP_URL` | `http://localhost:5105`         | `https://fi-idp-dhakabank.fly.dev` to log in against the real deployed IdP instead of `fi-idp-mock` (see below). Must match whatever `BFF_URL` trusts as `Auth:Issuer`. |
-| `BFF_URL` | `http://localhost:8080`         | Your local `rvl-sbqr-fi-gateway`, or `https://fi-bff-dhakabank.fly.dev` once that gateway is hosted (currently a placeholder — `/bff/*` 502s until then). |
+| `BFF_URL` | `http://localhost:8080`         | Your local `rvl-sbqr-fi-gateway`, or `https://rvl-sbqr-fi-gateway.fly.dev` for the live deployed gateway. |
 | `PORT`    | `5173`                           | Whatever port you want the Vite dev server on.                                 |
 
 `vite.config.ts` reads these with `loadEnv` and uses them both as the dev
@@ -75,7 +75,7 @@ npm run dev
 The dev panel's `FI IdP` status dot will turn green and show the fly.dev URL.
 Log in with any demo user (`fatema` / `fatema@1234`, etc. — same seed
 convention as the mock). `BFF_URL` can stay pointed at your local BFF or the
-placeholder; only the IdP calls are affected. Delete `.env.local` (or change
+live gateway; only the IdP calls are affected. Delete `.env.local` (or change
 `IDP_URL` back) to return to the local mock.
 
 ### Offline stack (no real sbqr.api)
