@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dart SDK Integration Guide — SBQR Mobile Banking</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5b6472;
+    --border: #e2e5ea;
+    --accent: #0b5fff;
+    --icon: #5b7699;
+    --code-bg: #f4f6f8;
+    --table-head: #f0f2f5;
+    --pill-do: #e6f6ec;
+    --pill-do-fg: #146c2e;
+    --pill-dont: #fdeceb;
+    --pill-dont-fg: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1216;
+      --fg: #e6e8eb;
+      --muted: #9aa4b2;
+      --border: #2a2f37;
+      --accent: #6ea8ff;
+      --icon: #8ba0bd;
+      --code-bg: #171b20;
+      --table-head: #1a1f26;
+      --pill-do: #10321f;
+      --pill-do-fg: #7be3a0;
+      --pill-dont: #3a1414;
+      --pill-dont-fg: #ff9a92;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .layout {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-left: 8px;
+    align-items: flex-start;
+  }
+  nav.toc {
+    position: sticky;
+    top: 0;
+    flex: 0 0 170px;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 40px 12px 32px 4px;
+    border-right: 1px solid var(--border);
+  }
+  nav.toc h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+  nav.toc a {
+    display: block;
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 13.5px;
+    padding: 6px 6px 6px 2px;
+    border-radius: 6px;
+  }
+  nav.toc a:hover { background: var(--code-bg); }
+  main {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 40px 56px 80px 28px;
+  }
+  h1 {
+    font-size: 28px;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 20px;
+    margin: 40px 0 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  h1 + p, h2 + p { margin-top: 0; }
+  p { color: var(--fg); }
+  p time, p:first-of-type {
+    color: var(--muted);
+  }
+  code {
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-family: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 13px;
+    white-space: pre;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: var(--table-head);
+    font-weight: 600;
+  }
+  ul, ol { padding-left: 22px; }
+  li { margin: 6px 0; }
+  li p { margin: 0; }
+  strong { font-weight: 650; }
+  a.badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-right: 4px;
+  }
+  .footer-note {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+  }
+  @media (max-width: 900px) {
+    .layout { display: block; }
+    nav.toc { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    main { padding: 24px 16px 60px; }
+  }
+  .arch-diagram-wrap {
+    margin: 20px 0 8px;
+  }
+  .arch-diagram {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .arch-diagram rect.node {
+    fill: var(--code-bg);
+    stroke: var(--border);
+    stroke-width: 1.4;
+  }
+  .arch-diagram text.node-label {
+    fill: var(--fg);
+    font-size: 12.5px;
+    font-weight: 650;
+  }
+  .arch-diagram text.node-sub {
+    fill: var(--muted);
+    font-size: 10px;
+  }
+  .arch-diagram .flow {
+    stroke: var(--icon);
+    stroke-width: 1.5;
+    fill: none;
+  }
+  .arch-diagram .flow.dashed {
+    stroke-dasharray: 4 3;
+  }
+  .arch-diagram .arrowhead {
+    fill: var(--icon);
+  }
+  .arch-diagram .icon {
+    color: var(--icon);
+  }
+  .arch-diagram .icon path,
+  .arch-diagram .icon rect,
+  .arch-diagram .icon circle,
+  .arch-diagram .icon line {
+    stroke: currentColor;
+    stroke-width: 1.6;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .arch-diagram .icon .icon-dot {
+    fill: currentColor;
+  }
+  .arch-diagram .group-box {
+    fill: var(--code-bg);
+    stroke: var(--border);
+    stroke-width: 1.4;
+    stroke-dasharray: 5 4;
+  }
+  .arch-diagram .group-label {
+    fill: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .arch-diagram .proto-label {
+    fill: var(--icon);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .arch-diagram text.step-label {
+    fill: var(--muted);
+    font-size: 10.5px;
+  }
+  .arch-diagram tspan.step-num {
+    fill: var(--icon);
+    font-weight: 700;
+  }
+  .arch-caption {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 4px 0 20px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc">
+    <h3>Contents</h3>
+    <a href="#1-purpose-scope">1. Purpose &amp; scope</a>
+    <a href="#2-architecture-who-the-app-talks-to">2. Architecture</a>
+    <a href="#3-dev-environment-reference">3. Dev environment reference</a>
+    <a href="#4-step-1-customer-login">4. Step 1 — Login</a>
+    <a href="#5-step-2-token-refresh">5. Step 2 — Token refresh</a>
+    <a href="#6-step-3-generate-a-static-qr">6. Step 3 — Static QR</a>
+    <a href="#7-step-4-generate-a-dynamic-qr">7. Step 4 — Dynamic QR</a>
+    <a href="#8-step-5-validate-scan-a-qr">8. Step 5 — Validate QR</a>
+    <a href="#9-error-handling-two-distinct-shapes">9. Error handling</a>
+    <a href="#10-recommended-dart-sdk-layout">10. Dart SDK layout</a>
+    <a href="#11-security-rules-dos-and-donts">11. Security rules</a>
+  </nav>
+  <main>
+<h1 id="dart-sdk-integration-guide-sbqr-mobile-banking">Dart SDK Integration Guide — SBQR Mobile Banking</h1>
+<p>Step-by-step instructions for the Dart SDK team to wire real API calls into the Financial Institution (FI) mobile app, against the <strong>dev</strong> environment.</p>
+<h2 id="1-purpose-scope">1. Purpose &amp; scope</h2>
+<p>The FI's real mobile app must call two backend services, in a fixed order, with fixed payload shapes. This guide is that contract, written for the <strong>Dart SDK team</strong> to implement an <code>sbqr_sdk</code> package the FI app depends on, targeting the shared <strong>dev</strong> environment (no local stack needed).</p>
+<p><strong>In scope:</strong> authentication, token lifecycle, and the three QR calls (generate static, generate dynamic, validate).</p>
+<p><strong>Out of scope:</strong> QR image rendering, camera/scan UI, and on-device ledger/UI screens — those are FI-app concerns.</p>
+<h2 id="2-architecture-who-the-app-talks-to">2. Architecture — who the app talks to</h2>
+<p>The app <strong>never</strong> talks to <code>sbqr.api</code> (the platform) directly, and never holds a platform <code>client_secret</code>. There are exactly two hosts the SDK calls, chained like this:</p>
+<div class="arch-diagram-wrap">
+<svg class="arch-diagram" viewBox="0 0 1040 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="App User to Mobile App, then over HTTPS to FI Infrastructure (FI IdP and FI Gateway), then over mTLS to the Platform (sbqr.api), then to the Trust Store, request and response flowing both directions">
+  <defs>
+    <marker id="arrowFwd" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" class="arrowhead"/>
+    </marker>
+    <marker id="arrowRev" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="arrowhead"/>
+    </marker>
+    <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4.2 3.6-7 8-7s8 2.8 8 7"/>
+    </symbol>
+    <symbol id="icon-phone" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="7" y="2" width="10" height="20" rx="2"/>
+      <line x1="10" y1="18" x2="14" y2="18"/>
+    </symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2.5l7 3v6c0 5-3.4 8.3-7 9.7-3.6-1.4-7-4.7-7-9.7v-6l7-3z"/>
+      <path d="M8.5 12.2l2.3 2.3 4.5-4.6"/>
+    </symbol>
+    <symbol id="icon-gateway" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="6" rx="1.5"/>
+      <rect x="3" y="14" width="18" height="6" rx="1.5"/>
+      <circle cx="7" cy="7" r="0.9" fill="var(--icon)" stroke="none"/>
+      <circle cx="7" cy="17" r="0.9" fill="var(--icon)" stroke="none"/>
+    </symbol>
+    <symbol id="icon-cloud" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7.5 18h9.5a4 4 0 0 0 .4-7.98A5.5 5.5 0 0 0 7.2 9.2 4 4 0 0 0 7.5 18z"/>
+    </symbol>
+    <symbol id="icon-vault" viewBox="0 0 24 24" fill="none" stroke="var(--icon)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2.5"/>
+      <circle cx="12" cy="12" r="4.5"/>
+      <line x1="12" y1="12" x2="15.2" y2="12"/>
+      <circle cx="6.2" cy="6.2" r="0.85" fill="var(--icon)" stroke="none"/>
+      <circle cx="17.8" cy="17.8" r="0.85" fill="var(--icon)" stroke="none"/>
+    </symbol>
+  </defs>
+
+  <!-- FI Infrastructure group (IdP + Gateway) -->
+  <rect class="group-box" x="400" y="40" width="230" height="200" rx="14"/>
+  <text class="group-label" x="515" y="60" text-anchor="middle">FI Infrastructure</text>
+  <line x1="412" y1="68" x2="618" y2="68" stroke="var(--border)" stroke-width="1"/>
+
+  <!-- User -> App -->
+  <line x1="84" y1="130" x2="209" y2="130" class="flow" marker-end="url(#arrowFwd)"/>
+  <text class="step-label" x="146" y="120" text-anchor="middle">opens app</text>
+
+  <!-- App <-> IdP -->
+  <line x1="251" y1="118" x2="484" y2="90" class="flow" marker-start="url(#arrowRev)" marker-end="url(#arrowFwd)"/>
+  <text class="proto-label" x="367" y="94" text-anchor="middle">HTTPS</text>
+  <text class="step-label" x="367" y="118" text-anchor="middle"><tspan class="step-num">1</tspan> login → / ← <tspan class="step-num">2</tspan> tokens</text>
+
+  <!-- App <-> Gateway -->
+  <line x1="251" y1="142" x2="484" y2="170" class="flow" marker-start="url(#arrowRev)" marker-end="url(#arrowFwd)"/>
+  <text class="proto-label" x="367" y="150" text-anchor="middle">HTTPS</text>
+  <text class="step-label" x="367" y="176" text-anchor="middle"><tspan class="step-num">3</tspan> QR call → / ← <tspan class="step-num">6</tspan> response</text>
+
+  <!-- Gateway <-> Platform -->
+  <line x1="630" y1="170" x2="751" y2="170" class="flow" marker-start="url(#arrowRev)" marker-end="url(#arrowFwd)"/>
+  <text class="proto-label" x="690" y="156" text-anchor="middle">mTLS</text>
+  <text class="step-label" x="690" y="188" text-anchor="middle">secure VPN — <tspan class="step-num">4</tspan>→ / ←<tspan class="step-num">5</tspan></text>
+
+  <!-- Platform <-> Trust Store -->
+  <line x1="789" y1="170" x2="911" y2="170" class="flow dashed" marker-start="url(#arrowRev)" marker-end="url(#arrowFwd)"/>
+  <text class="step-label" x="850" y="156" text-anchor="middle">verify key</text>
+  <text class="step-label" x="850" y="188" text-anchor="middle">(validate only)</text>
+
+  <!-- Actors / systems -->
+  <use href="#icon-user" class="icon" x="38" y="108" width="44" height="44"/>
+  <text class="node-label" x="60" y="168" text-anchor="middle">App User</text>
+
+  <use href="#icon-phone" class="icon" x="211" y="111" width="38" height="38"/>
+  <text class="node-label" x="230" y="165" text-anchor="middle">Mobile App</text>
+  <text class="node-sub" x="230" y="179" text-anchor="middle">Dart SDK</text>
+
+  <use href="#icon-shield" class="icon" x="486" y="76" width="28" height="28"/>
+  <text class="node-label" x="500" y="118" text-anchor="middle">FI IdP</text>
+
+  <use href="#icon-gateway" class="icon" x="486" y="156" width="28" height="28"/>
+  <text class="node-label" x="500" y="198" text-anchor="middle">FI Gateway</text>
+  <text class="node-sub" x="500" y="212" text-anchor="middle">(BFF)</text>
+
+  <use href="#icon-cloud" class="icon" x="753" y="153" width="34" height="34"/>
+  <text class="node-label" x="770" y="201" text-anchor="middle">Platform</text>
+  <text class="node-sub" x="770" y="215" text-anchor="middle">sbqr.api</text>
+
+  <use href="#icon-vault" class="icon" x="913" y="153" width="34" height="34"/>
+  <text class="node-label" x="930" y="201" text-anchor="middle">Trust Store</text>
+  <text class="node-sub" x="930" y="215" text-anchor="middle">Bangladesh Bank</text>
+</svg>
+</div>
+<p class="arch-caption">Fig. 1 — End-to-End Integration Flow</p>
+<ol>
+<li>App → IdP: <code>POST /connect/token</code> (username + password)</li>
+<li>IdP → App: <code>200 OK</code> — <code>access_token</code> + <code>refresh_token</code></li>
+<li>App → Gateway: <code>POST /v1/qr/*</code> with <code>Authorization: Bearer &lt;access_token&gt;</code></li>
+<li>Gateway → Platform: forwards the request as-is, attaching its own platform token</li>
+<li>Platform → Gateway: <code>qrPayload</code> (generate) or <code>verdict</code> (validate)</li>
+<li>Gateway → App: the platform's response, returned unmodified (pass-through)</li>
+</ol>
+<p>The Platform ↔ Trust Store check only happens on <code>/v1/qr/validate</code>: the platform looks up the recipient institution's signing key in the Bangladesh Bank trust store before returning a verdict. It never happens on the two generate calls.</p>
+<table><thead><tr><th>Hop</th><th>Caller</th><th>Callee</th><th>Credential used</th></tr></thead><tbody><tr><td>1</td><td>Mobile app</td><td>FI Identity Provider (IdP)</td><td>Customer's own username/password</td></tr><tr><td>2</td><td>Mobile app</td><td>FI Gateway (BFF)</td><td>The customer JWT from hop 1, as a Bearer token</td></tr><tr><td>3 (server-side only, not the app's concern)</td><td>FI Gateway</td><td><code>sbqr.api</code> (platform)</td><td>Gateway's own <code>client_id</code>/<code>client_secret</code>, swapped in server-side</td></tr></tbody></table>
+<h2 id="3-dev-environment-reference">3. Dev environment reference</h2>
+<table><thead><tr><th>Service</th><th>Base URL</th><th>Role</th></tr></thead><tbody><tr><td>FI IdP (Dhaka Bank mock)</td><td><code>https://fi-idp-dhakabank.fly.dev</code></td><td>Login, token refresh</td></tr><tr><td>FI Gateway (BFF)</td><td><code>https://rvl-sbqr-fi-gateway.fly.dev</code></td><td>QR generate/validate</td></tr><tr><td><code>sbqr.api</code> (platform)</td><td><code>https://sbqr-api-dev.fly.dev</code></td><td>Not called by the app — reference only</td></tr></tbody></table>
+<p><strong>Test customer</strong> (seeded in the IdP; password pattern is always <code>&lt;username&gt;@1234</code>):</p>
+<table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody><tr><td>Username</td><td><code>fatema</code></td></tr><tr><td>Password</td><td><code>fatema@1234</code></td></tr><tr><td>Customer name</td><td>Fatema Akter</td></tr><tr><td>Recipient PAN (account) used in examples</td><td><code>1234567890123456</code></td></tr><tr><td>Institution code</td><td><code>000085</code> (Dhaka Bank)</td></tr></tbody></table>
+<p>Other seeded usernames for testing edge cases: <code>rafiq</code>, <code>karim</code> (normal accounts), <code>nasrin</code> (<strong>locked account</strong> — use to test the <code>account_locked</code> error path).</p>
+<p>Health checks (no auth, useful for an SDK connectivity smoke test):</p>
+<pre><code>GET https://fi-idp-dhakabank.fly.dev/health
+GET https://rvl-sbqr-fi-gateway.fly.dev/health/live
+GET https://rvl-sbqr-fi-gateway.fly.dev/health/ready</code></pre>
+<p><code>health/ready</code> on the Gateway must report <code>Healthy</code> (its platform token is pre-warmed) before Step 3–5 calls will succeed; if it 503s, wait a few seconds and retry.</p>
+<h2 id="4-step-1-customer-login">4. Step 1 — Customer login</h2>
+<p><strong>Purpose:</strong> authenticate the account holder against the FI's own IdP using the OAuth2 "Resource Owner Password Credentials" grant. The IdP checks the credential and account status (locked / expired password) and issues a signed access token plus a rotating refresh token. This is the exact grant a native banking app uses — no custom login endpoint.</p>
+<pre><code>POST https://fi-idp-dhakabank.fly.dev/connect/token
+Content-Type: application/x-www-form-urlencoded</code></pre>
+<p>Request body (form-encoded, NOT JSON):</p>
+<pre><code>grant_type=password&amp;username=fatema&amp;password=fatema@1234</code></pre>
+<p>Response — <code>200 OK</code>:</p>
+<pre><code class="language-json">{
+  "access_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImRldi1rZXktMSIsInR5cCI6IkpXVCJ9...",
+  "token_type": "Bearer",
+  "expires_in": 300,
+  "scope": "openid profile sbqr.api",
+  "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImRldi1rZXktMSIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "b1ab7ed269a180cc1952aec873f74ad27772e8ac7e00512398de5761dafb651b",
+  "refresh_expires_in": 86400
+}</code></pre>
+<p>Decoded <code>access_token</code> payload (RS256, verifiable against <code>GET /.well-known/jwks.json</code>):</p>
+<pre><code class="language-json">{
+  "name": "Fatema Akter",
+  "preferred_username": "fatema",
+  "customer_id": "CIF-00458821",
+  "fi_id": "dhakabank",
+  "iss": "https://fi-idp-dhakabank.fly.dev",
+  "aud": "sbqr-fi-gateway",
+  "sub": "user-fatema",
+  "iat": 1790367284,
+  "exp": 1790367584
+}</code></pre>
+<p><strong>Error responses — <code>400 Bad Request</code></strong> (OAuth2 shape, RFC 6749 §5.2):</p>
+<pre><code class="language-json">{"error": "invalid_grant", "error_description": "Incorrect username or password."}</code></pre>
+<pre><code class="language-json">{"error": "account_locked", "error_description": "This account is locked. Contact your branch."}</code></pre>
+<p><strong>SDK rule:</strong> <code>access_token</code> is the <em>customer</em> JWT — store it (and the refresh token) client-side; use it as the Bearer token for every Gateway call in Steps 3–5. Never send it to <code>sbqr.api</code> directly.</p>
+<h2 id="5-step-2-token-refresh">5. Step 2 — Token refresh</h2>
+<p><strong>Purpose:</strong> the access token expires in 300s. Rather than re-prompting for a password, exchange the refresh token for a fresh pair. The refresh token <strong>rotates on every use</strong> — the old one is invalidated the moment a new one is issued, so the SDK must persist the new pair immediately and serialize concurrent refresh attempts (two simultaneous 401s must not both call refresh with the same stale token).</p>
+<pre><code>POST https://fi-idp-dhakabank.fly.dev/connect/token
+Content-Type: application/x-www-form-urlencoded</code></pre>
+<pre><code>grant_type=refresh_token&amp;refresh_token=b1ab7ed269a180cc1952aec873f74ad27772e8ac7e00512398de5761dafb651b</code></pre>
+<p>Response — <code>200 OK</code>: identical shape to Step 1's response (new <code>access_token</code> + new <code>refresh_token</code>).</p>
+<p><strong>SDK rule (client-side session policy):</strong></p>
+<ol><li><p>Before any Gateway call, check the cached token's <code>exp</code> claim; treat it as expired if fewer than 20 seconds remain (avoids racing the wire).</p></li><li><p>If expired, call refresh; if a refresh is already in flight, await that same in-flight call rather than starting a second one.</p></li><li><p>If the IdP rejects the refresh token (400, e.g. <code>invalid_grant</code>), the session is over — clear stored tokens and force the user back to login. Do <strong>not</strong> treat an unreachable IdP the same way — keep the session and let the caller show a connectivity error instead.</p></li></ol>
+<h2 id="6-step-3-generate-a-static-qr">6. Step 3 — Generate a static QR</h2>
+<p><strong>Purpose:</strong> produce a reusable BanglaQR (send-money) code for the logged-in customer's own account, signed server-side by <code>sbqr.api</code>. "Static" = no amount encoded; the payer types the amount when they scan it.</p>
+<pre><code>POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/generate/static
+Authorization: Bearer &lt;customer access_token from Step 1/2&gt;
+Content-Type: application/json
+X-Correlation-Id: &lt;client-generated UUID, one per request, for tracing&gt;</code></pre>
+<p>Request body:</p>
+<pre><code class="language-json">{
+  "recipientName": "Fatema Akter",
+  "recipientCity": "Dhaka",
+  "recipientPan": "1234567890123456"
+}</code></pre>
+<p>Optional fields (omit entirely if empty — don't send <code>null</code> or <code>""</code>): <code>postalCode</code>, <code>customerLabel</code>, <code>purposeOfTransaction</code>.</p>
+<p>Field limits: <code>recipientName</code> ≤ 25 chars, <code>recipientCity</code> ≤ 15 chars, <code>recipientPan</code> ≤ 19 chars, <code>postalCode</code> ≤ 10 chars, <code>customerLabel</code>/<code>purposeOfTransaction</code> ≤ 25 chars.</p>
+<p>Response — <code>201 Created</code>:</p>
+<pre><code class="language-json">{
+  "qrPayload": "00020101021126520014bd.org.bb.npsb01020002040085031612345678901234565204482953030505802BD5912Fatema Akter6005Dhaka80660014bd.org.bb.npsb0144/WSCPeFbeP6QwBGI9pHMWS8Tj3o55LPGwiJxnHsfBd8W81660014bd.org.bb.npsb0144LawqLKx6LFxdn702tWvQyKzpOMGADITjNcqbgGqyAw==630467C3",
+  "payloadHash": "3af4e6a52fb81cbf38c7aed5416a1d62eedb4f43d96026df8cd793ee986d4af8",
+  "qrType": "STATIC",
+  "signatureKeyVersion": 1
+}</code></pre>
+<p><code>qrPayload</code> is the raw EMVCo TLV string — hand it to a QR-image renderer as-is; don't parse or re-encode it client-side.</p>
+<p><strong>Error responses</strong> (all <code>application/problem+json</code>, i.e. <code>ProblemDetails</code>):</p>
+<table><thead><tr><th>Status</th><th>Meaning</th><th>SDK handling</th></tr></thead><tbody><tr><td><code>400</code></td><td>Malformed/missing required field</td><td>Surface <code>detail</code>/<code>errors</code> to the user; this is a client bug, not retryable</td></tr><tr><td><code>401</code></td><td>Customer token expired/invalid</td><td>Silently refresh (Step 2) and retry <strong>once</strong>; if the retry also 401s, force re-login</td></tr><tr><td><code>403</code></td><td>Not allowed</td><td>Surface as a hard stop, no retry</td></tr><tr><td><code>422</code></td><td>Field failed business validation</td><td>Surface <code>detail</code> to the user</td></tr><tr><td><code>409</code></td><td>Idempotency conflict (see below)</td><td>Surface a generic "try again" — do not silently retry with a new key</td></tr></tbody></table>
+<p><strong>Idempotency:</strong> the Gateway accepts an optional <code>Idempotency-Key</code> header; if omitted, it derives one server-side from the user + request body within a rolling window, so an accidental double-tap on "Generate" during a slow network is safe and returns the same QR rather than issuing two.</p>
+<h2 id="7-step-4-generate-a-dynamic-qr">7. Step 4 — Generate a dynamic QR</h2>
+<p><strong>Purpose:</strong> same as Step 3, but the amount is fixed and encoded into the signed payload — used for "request money" flows. Recommended max lifetime for a dynamic QR is 15 minutes; the SDK should expire/regenerate it client-side after that even though the server doesn't enforce a TTL on the payload itself.</p>
+<pre><code>POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/generate/dynamic
+Authorization: Bearer &lt;customer access_token&gt;
+Content-Type: application/json
+X-Correlation-Id: &lt;client-generated UUID&gt;</code></pre>
+<p>Request body — identical to static, plus <code>transactionAmount</code> (required, string, digits with at most one decimal point, e.g. <code>"500.00"</code>, ≤ 13 characters):</p>
+<pre><code class="language-json">{
+  "recipientName": "Fatema Akter",
+  "recipientCity": "Dhaka",
+  "recipientPan": "1234567890123456",
+  "transactionAmount": "500.00"
+}</code></pre>
+<p>Response — <code>201 Created</code> (same shape as Step 3, <code>qrType</code> is now <code>DYNAMIC</code>):</p>
+<pre><code class="language-json">{
+  "qrPayload": "00020101021226520014bd.org.bb.npsb01020002040085031612345678901234565204482953030505406500.005802BD5912Fatema Akter6005Dhaka80660014bd.org.bb.npsb0144/WSCPeFbeP6QwBGI9pHMWS8Tj3o55LPGwiJxnHsfBd8W81660014bd.org.bb.npsb0144LawqLKx6LFxdn702tWvQyKzpOMGADITjNcqbgGqyAw==6304D841",
+  "payloadHash": "7dcb0dc9004b32c00e8b3b61135bf8e16747c7b6c778660a77c9228925477cf7",
+  "qrType": "DYNAMIC",
+  "signatureKeyVersion": 1
+}</code></pre>
+<p>Same error table and idempotency behavior as Step 3.</p>
+<h2 id="8-step-5-validate-scan-a-qr">8. Step 5 — Validate (scan) a QR</h2>
+<p><strong>Purpose:</strong> when the app scans (or a user uploads an image of) someone else's QR, this call cryptographically verifies the issuing institution's Ed25519 signature against the Bangladesh Bank trust store before the app lets the user proceed to pay. <strong>Never initiate a transfer without a <code>VALID</code> verdict here.</strong></p>
+<pre><code>POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/validate
+Authorization: Bearer &lt;customer access_token&gt;
+Content-Type: application/json
+X-Correlation-Id: &lt;client-generated UUID&gt;</code></pre>
+<p>Request body — <code>requestId</code> and <code>requestTimestamp</code> must be fresh on every attempt (they feed the platform's replay-window check; reusing them on a retry will draw <code>REQUEST_REPLAYED</code>):</p>
+<pre><code class="language-json">{
+  "qrPayload": "&lt;the decoded QR string as scanned&gt;",
+  "requestId": "a1b2c3d4e5f6...",
+  "requestTimestamp": "2026-09-26T10:15:30.000Z"
+}</code></pre>
+<p>Response — <code>200 OK</code>:</p>
+<pre><code class="language-json">{
+  "verdict": "VALID",
+  "trustSource": "TRUST_DIRECTORY",
+  "reasonCode": null,
+  "institutionCode": "000085",
+  "payloadHash": "7dcb0dc9004b32c00e8b3b61135bf8e16747c7b6c778660a77c9228925477cf7",
+  "recipientName": "Fatema Akter",
+  "recipientPan": "1234567890123456",
+  "qrClassification": "P2P"
+}</code></pre>
+<p><strong><code>verdict</code> values and required app copy (never show the raw enum to the user):</strong></p>
+<table><thead><tr><th>Verdict</th><th>Meaning</th><th>User-facing message</th></tr></thead><tbody><tr><td><code>VALID</code></td><td>Safe to proceed</td><td>(proceed to review/pay screen)</td></tr><tr><td><code>INVALID_SIGNATURE</code></td><td>Signature check failed</td><td>"This QR could not be verified. Please ask the recipient to share a new one."</td></tr><tr><td><code>STRUCTURAL_INVALID</code></td><td>Malformed TLV</td><td>"This QR appears to be damaged. Please try again or request a fresh QR."</td></tr><tr><td><code>KEY_NOT_FOUND</code></td><td>Institution not in BB trust store</td><td>"The recipient's institution is not in the Bangladesh Bank trust store."</td></tr><tr><td><code>KEY_SUSPENDED</code> / <code>KEY_REVOKED</code> / <code>KEY_NOT_ACTIVE</code></td><td>Institution key not currently trusted</td><td>"The recipient institution's signing key is not currently trusted. The payment was blocked for your safety."</td></tr><tr><td><code>NON_P2P</code></td><td>It's a merchant (P2M) QR</td><td>"This is a merchant QR, not a personal QR. Please use merchant payment instead."</td></tr><tr><td><code>REQUEST_STALE</code></td><td>Device clock drift</td><td>"Please correct your device date and time, then try again."</td></tr><tr><td><code>REQUEST_REPLAYED</code></td><td>Duplicate <code>requestId</code></td><td>"This verification was already processed. Please scan the QR again."</td></tr></tbody></table>
+<p>Every non-<code>VALID</code> verdict is a <strong>block</strong>, not a warning — the SDK must not expose a way to bypass it and pay anyway.</p>
+<h2 id="9-error-handling-two-distinct-shapes">9. Error handling — two distinct shapes</h2>
+<p>The IdP and the Gateway return <strong>different error envelopes</strong> — the SDK needs one parser per host, not one shared one:</p>
+<p><strong>IdP errors</strong> (OAuth2, RFC 6749 §5.2) — always <code>400</code>:</p>
+<pre><code class="language-json">{ "error": "invalid_grant", "error_description": "Incorrect username or password." }</code></pre>
+<p>Switch on <code>error</code> (<code>invalid_grant</code>, <code>account_locked</code>, etc.); <code>error_description</code> is safe to show the user as-is.</p>
+<p><strong>Gateway/platform errors</strong> (RFC 7807 Problem Details) — <code>400</code>/<code>401</code>/<code>403</code>/<code>409</code>/<code>422</code>:</p>
+<pre><code class="language-json">{ "type": null, "title": "...", "status": 422, "detail": "...", "instance": null }</code></pre>
+<p>Prefer <code>detail</code>, fall back to <code>title</code>, for user-facing text.</p>
+<p><strong>Connectivity vs. rejection:</strong> a <code>0</code>/<code>502</code>/<code>503</code>/<code>504</code> (or a network exception) means the backend itself is unreachable — show "can't reach the server, check your connection," and it is safe to let the user retry manually. A <code>401</code>/<code>403</code>/<code>4xx</code> is the backend actively rejecting the request — do not treat it as a connectivity issue.</p>
+<p><strong>401 retry policy:</strong> exactly one silent retry per call, after a forced token refresh. If the retried call also 401s, stop — log the user out and surface "your session has expired." Never loop on 401.</p>
+<p><strong>Correlation IDs:</strong> always send a fresh <code>X-Correlation-Id</code> per request to the Gateway; log it alongside any error you report, so the FI's ops team can grep it out of Gateway logs when the SDK team needs help debugging a specific failed call.</p>
+<h2 id="10-recommended-dart-sdk-layout">10. Recommended Dart SDK layout</h2>
+<p>A clean split proven against these exact endpoints, rather than inventing a new structure:</p>
+<table><thead><tr><th>File</th><th>Responsibility</th></tr></thead><tbody><tr><td><code>http_client.dart</code></td><td>One low-level POST helper: sets headers, generates <code>X-Correlation-Id</code>, parses JSON, maps non-2xx to a typed <code>ApiException</code> (carrying status + parsed body)</td></tr><tr><td><code>auth_api.dart</code></td><td><code>signIn(username, password)</code>, <code>refresh(refreshToken)</code>, JWT decode helper, typed <code>AuthException</code> for OAuth2 <code>error</code> codes</td></tr><tr><td><code>qr_api.dart</code></td><td><code>generateStatic()</code>, <code>generateDynamic()</code>, <code>validateQr()</code> — each wrapped in a <code>withAuth</code> helper that supplies the bearer token and retries once on 401</td></tr><tr><td><code>session.dart</code></td><td>Holds the current token pair, exposes a <code>tokenSource</code> callback the QR API uses, owns the refresh-in-flight de-duplication and the 20-second-early-expiry check</td></tr></tbody></table>
+<p>Keep IdP and Gateway base URLs as build-time config (e.g. <code>--dart-define=IDP_URL=...</code> / <code>--dart-define=BFF_URL=...</code>), never hard-coded, so QA/stage/prod can be swapped without a code change.</p>
+<h2 id="11-security-rules-dos-and-donts">11. Security rules — do's and don'ts</h2>
+<ul>
+<li><p><span class="badge" style="background:var(--pill-do);color:var(--pill-do-fg)">Do</span> send the customer's own JWT (from Step 1/2) to the Gateway as <code>Authorization: Bearer</code>.</p></li>
+<li><p><span class="badge" style="background:var(--pill-dont);color:var(--pill-dont-fg)">Don't</span> ever request, store, or embed a platform <code>client_id</code>/<code>client_secret</code> in the app — that credential belongs only to the Gateway, server-side.</p></li>
+<li><p><span class="badge" style="background:var(--pill-do);color:var(--pill-do-fg)">Do</span> treat <code>refresh_token</code> as single-use and store the newest one only; discard the old one the instant a refresh succeeds.</p></li>
+<li><p><span class="badge" style="background:var(--pill-do);color:var(--pill-do-fg)">Do</span> store both tokens in secure, OS-backed storage (Keychain / Keystore via <code>flutter_secure_storage</code> or equivalent) — never plain <code>SharedPreferences</code>, never logged.</p></li>
+<li><p><span class="badge" style="background:var(--pill-dont);color:var(--pill-dont-fg)">Don't</span> log request/response bodies containing <code>password</code>, <code>access_token</code>, or <code>refresh_token</code> in cleartext, even in debug builds — mask them before writing to any log.</p></li>
+<li><p><span class="badge" style="background:var(--pill-do);color:var(--pill-do-fg)">Do</span> validate every scanned QR via Step 5 before showing a payment review screen, and block on any non-<code>VALID</code> verdict — no client-side override.</p></li>
+<li><p><span class="badge" style="background:var(--pill-do);color:var(--pill-do-fg)">Do</span> call all three hosts over HTTPS only; pin nothing extra is required in dev, but plan for certificate pinning before a prod build.</p></li>
+<li><p><span class="badge" style="background:var(--pill-dont);color:var(--pill-dont-fg)">Don't</span> cache or hard-code the <code>sbqr-api-dev.fly.dev</code> host in the SDK — the app has no legitimate reason to reach it; if a build ever needs to, that's a sign the Gateway contract is being bypassed.</p></li>
+</ul>
+<div class="footer-note">
+  Verified against the dev environment (<code>fi-idp-dhakabank.fly.dev</code> / <code>rvl-sbqr-fi-gateway.fly.dev</code>). Dev environment only — credentials shown above are sandbox test data, not production secrets.
+</div>
+  </main>
+</div>
+</body>
+</html>
