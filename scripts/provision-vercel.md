@@ -80,8 +80,8 @@ done
 Values (paste when prompted):
 | Variable            | Value                                       |
 |---------------------|---------------------------------------------|
-| `BFF_URL`           | `https://rvl-sbqr-fi-gateway.fly.dev`       |
-| `IDP_URL`           | `https://fi-idp-dhakabank.fly.dev`          |
+| `BFF_URL`           | `https://sbqr-fi-gateway-dhakabank.fly.dev`       |
+| `IDP_URL`           | `https://idp-dhakabank-mock.fly.dev`          |
 
 Verify:
 ```bash

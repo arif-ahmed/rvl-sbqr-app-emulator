@@ -12,8 +12,8 @@ The repository is currently configured for a single primary FI:
 |--------------|----------------------------------------|
 | `id`         | `dhakabank`                            |
 | `displayName`| Dhaka Bank                             |
-| IdP URL      | `https://fi-idp-dhakabank.fly.dev`     |
-| BFF URL      | `https://rvl-sbqr-fi-gateway.fly.dev`  |
+| IdP URL      | `https://idp-dhakabank-mock.fly.dev`     |
+| BFF URL      | `https://sbqr-fi-gateway-dhakabank.fly.dev`  |
 | Domain       | `emulator.dhakabank.dev`               |
 
 Both the IdP and the gateway/BFF (`rvl-sbqr-fi-gateway`) are live on Fly.io.
@@ -25,7 +25,7 @@ Vite server forwards them to the local IdP/BFF (see `vite.config.ts`). In
 production the rewrites in `vercel.json` forward them to the FI's hosted IdP/BFF:
 
 ```json
-{ "source": "/idp/:path*", "destination": "https://fi-idp-dhakabank.fly.dev/:path*" }
+{ "source": "/idp/:path*", "destination": "https://idp-dhakabank-mock.fly.dev/:path*" }
 ```
 
 > **Hosts are literal on purpose.** Vercel does not substitute environment
@@ -48,8 +48,8 @@ and bakes them into the bundle as the dev-panel labels (`__BFF_TARGET__` /
 
 | Variable             | Local dev (`.env.local`)              | Production (host)                                  |
 |----------------------|---------------------------------------|----------------------------------------------------|
-| `BFF_URL`            | `http://localhost:8080` *(or your FI BFF)* | `https://rvl-sbqr-fi-gateway.fly.dev` |
-| `IDP_URL`            | `https://fi-idp-dhakabank.fly.dev`    | `https://fi-idp-dhakabank.fly.dev`                 |
+| `BFF_URL`            | `http://localhost:8080` *(or your FI BFF)* | `https://sbqr-fi-gateway-dhakabank.fly.dev` |
+| `IDP_URL`            | `https://idp-dhakabank-mock.fly.dev`    | `https://idp-dhakabank-mock.fly.dev`                 |
 | `PORT`               | `5173`                                | — *(set by host)*                                  |
 
 > **`VITE_*` prefix matters.** Vite only exposes variables prefixed `VITE_` to the
@@ -73,8 +73,8 @@ FIs are declared in [`fis.json`](../fis.json):
 {
   "fIs": [
     { "id": "dhakabank",
-      "bffUrl": "rvl-sbqr-fi-gateway.fly.dev",
-      "idpUrl": "fi-idp-dhakabank.fly.dev",
+      "bffUrl": "sbqr-fi-gateway-dhakabank.fly.dev",
+      "idpUrl": "idp-dhakabank-mock.fly.dev",
       "domain": "emulator.dhakabank.dev",
       "vercelProjectIdEnv": "VERCEL_PROJECT_ID_DHAKABANK" }
   ]
@@ -95,8 +95,8 @@ entry to `.github/workflows/deploy-vercel.yml`).
    automated Safe Browsing–style scanners, even when the content is a sandbox. FI
    selection belongs in `fis.json` / build-time env vars, not the hostname.
 2. Per project, set environment variables:
-   - `BFF_URL` = `https://rvl-sbqr-fi-gateway.fly.dev`
-   - `IDP_URL` = `https://fi-idp-dhakabank.fly.dev`
+   - `BFF_URL` = `https://sbqr-fi-gateway-dhakabank.fly.dev`
+   - `IDP_URL` = `https://idp-dhakabank-mock.fly.dev`
 3. Add the FI's custom domain (`emulator.dhakabank.dev`) to that project.
 4. Copy the project id → set as a GitHub repo secret
    `VERCEL_PROJECT_ID_DHAKABANK`.

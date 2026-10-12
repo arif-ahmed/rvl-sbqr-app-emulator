@@ -4,8 +4,8 @@
     {
       "id": "dhakabank",
       "displayName": "Dhaka Bank (primary)",
-      "bffUrl": "rvl-sbqr-fi-gateway.fly.dev",
-      "idpUrl": "fi-idp-dhakabank.fly.dev",
+      "bffUrl": "sbqr-fi-gateway-dhakabank.fly.dev",
+      "idpUrl": "idp-dhakabank-mock.fly.dev",
       "domain": "emulator.dhakabank.dev",
       "vercelProjectIdEnv": "VERCEL_PROJECT_ID_DHAKABANK",
       "notes": "IdP and gateway are both live on Fly.io."

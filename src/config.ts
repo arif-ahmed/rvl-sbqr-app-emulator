@@ -6,8 +6,8 @@
 // form (user ID + password) on a throwaway vercel.app host, and Google Safe
 // Browsing repeatedly flagged the app as phishing when this said "Dhaka
 // Bank" — a real institution's name and tagline — even after the deploy
-// domain was made FI-agnostic. Backend URLs (fi-idp-dhakabank.fly.dev,
-// rvl-sbqr-fi-gateway.fly.dev) still identify the real sandbox FI; keep this
+// domain was made FI-agnostic. Backend URLs (idp-dhakabank-mock.fly.dev,
+// sbqr-fi-gateway-dhakabank.fly.dev) still identify the real sandbox FI; keep this
 // display name generic regardless of which backend is wired up.
 export const BRAND = {
   bankName: 'Demo Bank',

@@ -28,8 +28,8 @@ The Gateway (BFF) is a thin, verbatim proxy in front of `sbqr.api`'s public cont
 
 | Service | Base URL | Role |
 | --- | --- | --- |
-| FI IdP (Dhaka Bank mock) | `https://fi-idp-dhakabank.fly.dev` | Login, token refresh |
-| FI Gateway (BFF) | `https://rvl-sbqr-fi-gateway.fly.dev` | QR generate/validate |
+| FI IdP (Dhaka Bank mock) | `https://idp-dhakabank-mock.fly.dev` | Login, token refresh |
+| FI Gateway (BFF) | `https://sbqr-fi-gateway-dhakabank.fly.dev` | QR generate/validate |
 | `sbqr.api` (platform) | `https://sbqr-api-dev.fly.dev` | Not called by the app — reference only |
 
 **Test customer** (seeded in the IdP; password pattern is always `<username>@1234`):
@@ -47,9 +47,9 @@ Other seeded usernames for testing edge cases: `rafiq`, `karim` (normal accounts
 Health checks (no auth, useful for an SDK connectivity smoke test):
 
 ```
-GET https://fi-idp-dhakabank.fly.dev/health
-GET https://rvl-sbqr-fi-gateway.fly.dev/health/live
-GET https://rvl-sbqr-fi-gateway.fly.dev/health/ready
+GET https://idp-dhakabank-mock.fly.dev/health
+GET https://sbqr-fi-gateway-dhakabank.fly.dev/health/live
+GET https://sbqr-fi-gateway-dhakabank.fly.dev/health/ready
 ```
 
 `health/ready` on the Gateway must report `Healthy` (its platform token is pre-warmed) before Step 3–5 calls will succeed; if it 503s, wait a few seconds and retry.
@@ -59,7 +59,7 @@ GET https://rvl-sbqr-fi-gateway.fly.dev/health/ready
 **Purpose:** authenticate the account holder against the FI's own IdP using the OAuth2 "Resource Owner Password Credentials" grant. The IdP checks the credential and account status (locked / expired password) and issues a signed access token plus a rotating refresh token. This is the exact grant a native banking app uses — no custom login endpoint.
 
 ```
-POST https://fi-idp-dhakabank.fly.dev/connect/token
+POST https://idp-dhakabank-mock.fly.dev/connect/token
 Content-Type: application/x-www-form-urlencoded
 ```
 
@@ -91,7 +91,7 @@ Decoded `access_token` payload (RS256, verifiable against `GET /.well-known/jwks
   "preferred_username": "fatema",
   "customer_id": "CIF-00458821",
   "fi_id": "dhakabank",
-  "iss": "https://fi-idp-dhakabank.fly.dev",
+  "iss": "https://idp-dhakabank-mock.fly.dev",
   "aud": "sbqr-fi-gateway",
   "sub": "user-fatema",
   "iat": 1790367284,
@@ -116,7 +116,7 @@ Decoded `access_token` payload (RS256, verifiable against `GET /.well-known/jwks
 **Purpose:** the access token expires in 300s. Rather than re-prompting for a password, exchange the refresh token for a fresh pair. The refresh token **rotates on every use** — the old one is invalidated the moment a new one is issued, so the SDK must persist the new pair immediately and serialize concurrent refresh attempts (two simultaneous 401s must not both call refresh with the same stale token).
 
 ```
-POST https://fi-idp-dhakabank.fly.dev/connect/token
+POST https://idp-dhakabank-mock.fly.dev/connect/token
 Content-Type: application/x-www-form-urlencoded
 ```
 
@@ -137,7 +137,7 @@ Response — `200 OK`: identical shape to Step 1's response (new `access_token` 
 **Purpose:** produce a reusable BanglaQR (send-money) code for the logged-in customer's own account, signed server-side by `sbqr.api`. "Static" = no amount encoded; the payer types the amount when they scan it.
 
 ```
-POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/generate/static
+POST https://sbqr-fi-gateway-dhakabank.fly.dev/v1/qr/generate/static
 Authorization: Bearer <customer access_token from Step 1/2>
 Content-Type: application/json
 X-Correlation-Id: <client-generated UUID, one per request, for tracing>
@@ -187,7 +187,7 @@ Response — `201 Created`:
 **Purpose:** same as Step 3, but the amount is fixed and encoded into the signed payload — used for "request money" flows. Recommended max lifetime for a dynamic QR is 15 minutes; the SDK should expire/regenerate it client-side after that even though the server doesn't enforce a TTL on the payload itself.
 
 ```
-POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/generate/dynamic
+POST https://sbqr-fi-gateway-dhakabank.fly.dev/v1/qr/generate/dynamic
 Authorization: Bearer <customer access_token>
 Content-Type: application/json
 X-Correlation-Id: <client-generated UUID>
@@ -222,7 +222,7 @@ Same error table and idempotency behavior as Step 3.
 **Purpose:** when the app scans (or a user uploads an image of) someone else's QR, this call cryptographically verifies the issuing institution's Ed25519 signature against the Bangladesh Bank trust store before the app lets the user proceed to pay. **Never initiate a transfer without a `VALID` verdict here.**
 
 ```
-POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/validate
+POST https://sbqr-fi-gateway-dhakabank.fly.dev/v1/qr/validate
 Authorization: Bearer <customer access_token>
 Content-Type: application/json
 X-Correlation-Id: <client-generated UUID>

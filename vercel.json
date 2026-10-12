@@ -7,11 +7,11 @@
   "rewrites": [
     {
       "source": "/idp/:path*",
-      "destination": "https://fi-idp-dhakabank.fly.dev/:path*"
+      "destination": "https://idp-dhakabank-mock.fly.dev/:path*"
     },
     {
       "source": "/bff/:path*",
-      "destination": "https://rvl-sbqr-fi-gateway.fly.dev/:path*"
+      "destination": "https://sbqr-fi-gateway-dhakabank.fly.dev/:path*"
     },
     {
       "source": "/(.*)",

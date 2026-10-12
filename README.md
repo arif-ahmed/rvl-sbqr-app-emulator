@@ -52,8 +52,8 @@ without touching the shared defaults):
 
 | Variable  | Default (`.env.example`)       | Change it to…                                                                 |
 |-----------|---------------------------------|--------------------------------------------------------------------------------|
-| `IDP_URL` | `http://localhost:5105`         | `https://fi-idp-dhakabank.fly.dev` to log in against the real deployed IdP instead of `fi-idp-mock` (see below). Must match whatever `BFF_URL` trusts as `Auth:Issuer`. |
-| `BFF_URL` | `http://localhost:8080`         | Your local `rvl-sbqr-fi-gateway`, or `https://rvl-sbqr-fi-gateway.fly.dev` for the live deployed gateway. |
+| `IDP_URL` | `http://localhost:5105`         | `https://idp-dhakabank-mock.fly.dev` to log in against the real deployed IdP instead of `fi-idp-mock` (see below). Must match whatever `BFF_URL` trusts as `Auth:Issuer`. |
+| `BFF_URL` | `http://localhost:8080`         | Your local `rvl-sbqr-fi-gateway`, or `https://sbqr-fi-gateway-dhakabank.fly.dev` for the live deployed gateway. |
 | `PORT`    | `5173`                           | Whatever port you want the Vite dev server on.                                 |
 
 `vite.config.ts` reads these with `loadEnv` and uses them both as the dev
@@ -68,7 +68,7 @@ To verify the emulator against the real Dhaka Bank IdP (`fi-idp-dhakabank`,
 hosted on Fly.io) instead of the local `fi-idp-mock`:
 
 ```bash
-echo 'IDP_URL=https://fi-idp-dhakabank.fly.dev' > .env.local
+echo 'IDP_URL=https://idp-dhakabank-mock.fly.dev' > .env.local
 npm run dev
 ```
 

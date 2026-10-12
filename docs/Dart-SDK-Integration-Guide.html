@@ -370,18 +370,18 @@
 <p>The Platform ↔ Trust Store check only happens on <code>/v1/qr/validate</code>: the platform looks up the recipient institution's signing key in the Bangladesh Bank trust store before returning a verdict. It never happens on the two generate calls.</p>
 <table><thead><tr><th>Hop</th><th>Caller</th><th>Callee</th><th>Credential used</th></tr></thead><tbody><tr><td>1</td><td>Mobile app</td><td>FI Identity Provider (IdP)</td><td>Customer's own username/password</td></tr><tr><td>2</td><td>Mobile app</td><td>FI Gateway (BFF)</td><td>The customer JWT from hop 1, as a Bearer token</td></tr><tr><td>3 (server-side only, not the app's concern)</td><td>FI Gateway</td><td><code>sbqr.api</code> (platform)</td><td>Gateway's own <code>client_id</code>/<code>client_secret</code>, swapped in server-side</td></tr></tbody></table>
 <h2 id="3-dev-environment-reference">3. Dev environment reference</h2>
-<table><thead><tr><th>Service</th><th>Base URL</th><th>Role</th></tr></thead><tbody><tr><td>FI IdP (Dhaka Bank mock)</td><td><code>https://fi-idp-dhakabank.fly.dev</code></td><td>Login, token refresh</td></tr><tr><td>FI Gateway (BFF)</td><td><code>https://rvl-sbqr-fi-gateway.fly.dev</code></td><td>QR generate/validate</td></tr><tr><td><code>sbqr.api</code> (platform)</td><td><code>https://sbqr-api-dev.fly.dev</code></td><td>Not called by the app — reference only</td></tr></tbody></table>
+<table><thead><tr><th>Service</th><th>Base URL</th><th>Role</th></tr></thead><tbody><tr><td>FI IdP (Dhaka Bank mock)</td><td><code>https://idp-dhakabank-mock.fly.dev</code></td><td>Login, token refresh</td></tr><tr><td>FI Gateway (BFF)</td><td><code>https://sbqr-fi-gateway-dhakabank.fly.dev</code></td><td>QR generate/validate</td></tr><tr><td><code>sbqr.api</code> (platform)</td><td><code>https://sbqr-api-dev.fly.dev</code></td><td>Not called by the app — reference only</td></tr></tbody></table>
 <p><strong>Test customer</strong> (seeded in the IdP; password pattern is always <code>&lt;username&gt;@1234</code>):</p>
 <table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody><tr><td>Username</td><td><code>fatema</code></td></tr><tr><td>Password</td><td><code>fatema@1234</code></td></tr><tr><td>Customer name</td><td>Fatema Akter</td></tr><tr><td>Recipient PAN (account) used in examples</td><td><code>1234567890123456</code></td></tr><tr><td>Institution code</td><td><code>000085</code> (Dhaka Bank)</td></tr></tbody></table>
 <p>Other seeded usernames for testing edge cases: <code>rafiq</code>, <code>karim</code> (normal accounts), <code>nasrin</code> (<strong>locked account</strong> — use to test the <code>account_locked</code> error path).</p>
 <p>Health checks (no auth, useful for an SDK connectivity smoke test):</p>
-<pre><code>GET https://fi-idp-dhakabank.fly.dev/health
-GET https://rvl-sbqr-fi-gateway.fly.dev/health/live
-GET https://rvl-sbqr-fi-gateway.fly.dev/health/ready</code></pre>
+<pre><code>GET https://idp-dhakabank-mock.fly.dev/health
+GET https://sbqr-fi-gateway-dhakabank.fly.dev/health/live
+GET https://sbqr-fi-gateway-dhakabank.fly.dev/health/ready</code></pre>
 <p><code>health/ready</code> on the Gateway must report <code>Healthy</code> (its platform token is pre-warmed) before Step 3–5 calls will succeed; if it 503s, wait a few seconds and retry.</p>
 <h2 id="4-step-1-customer-login">4. Step 1 — Customer login</h2>
 <p><strong>Purpose:</strong> authenticate the account holder against the FI's own IdP using the OAuth2 "Resource Owner Password Credentials" grant. The IdP checks the credential and account status (locked / expired password) and issues a signed access token plus a rotating refresh token. This is the exact grant a native banking app uses — no custom login endpoint.</p>
-<pre><code>POST https://fi-idp-dhakabank.fly.dev/connect/token
+<pre><code>POST https://idp-dhakabank-mock.fly.dev/connect/token
 Content-Type: application/x-www-form-urlencoded</code></pre>
 <p>Request body (form-encoded, NOT JSON):</p>
 <pre><code>grant_type=password&amp;username=fatema&amp;password=fatema@1234</code></pre>
@@ -401,7 +401,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
   "preferred_username": "fatema",
   "customer_id": "CIF-00458821",
   "fi_id": "dhakabank",
-  "iss": "https://fi-idp-dhakabank.fly.dev",
+  "iss": "https://idp-dhakabank-mock.fly.dev",
   "aud": "sbqr-fi-gateway",
   "sub": "user-fatema",
   "iat": 1790367284,
@@ -413,7 +413,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <p><strong>SDK rule:</strong> <code>access_token</code> is the <em>customer</em> JWT — store it (and the refresh token) client-side; use it as the Bearer token for every Gateway call in Steps 3–5. Never send it to <code>sbqr.api</code> directly.</p>
 <h2 id="5-step-2-token-refresh">5. Step 2 — Token refresh</h2>
 <p><strong>Purpose:</strong> the access token expires in 300s. Rather than re-prompting for a password, exchange the refresh token for a fresh pair. The refresh token <strong>rotates on every use</strong> — the old one is invalidated the moment a new one is issued, so the SDK must persist the new pair immediately and serialize concurrent refresh attempts (two simultaneous 401s must not both call refresh with the same stale token).</p>
-<pre><code>POST https://fi-idp-dhakabank.fly.dev/connect/token
+<pre><code>POST https://idp-dhakabank-mock.fly.dev/connect/token
 Content-Type: application/x-www-form-urlencoded</code></pre>
 <pre><code>grant_type=refresh_token&amp;refresh_token=b1ab7ed269a180cc1952aec873f74ad27772e8ac7e00512398de5761dafb651b</code></pre>
 <p>Response — <code>200 OK</code>: identical shape to Step 1's response (new <code>access_token</code> + new <code>refresh_token</code>).</p>
@@ -421,7 +421,7 @@ Content-Type: application/x-www-form-urlencoded</code></pre>
 <ol><li><p>Before any Gateway call, check the cached token's <code>exp</code> claim; treat it as expired if fewer than 20 seconds remain (avoids racing the wire).</p></li><li><p>If expired, call refresh; if a refresh is already in flight, await that same in-flight call rather than starting a second one.</p></li><li><p>If the IdP rejects the refresh token (400, e.g. <code>invalid_grant</code>), the session is over — clear stored tokens and force the user back to login. Do <strong>not</strong> treat an unreachable IdP the same way — keep the session and let the caller show a connectivity error instead.</p></li></ol>
 <h2 id="6-step-3-generate-a-static-qr">6. Step 3 — Generate a static QR</h2>
 <p><strong>Purpose:</strong> produce a reusable BanglaQR (send-money) code for the logged-in customer's own account, signed server-side by <code>sbqr.api</code>. "Static" = no amount encoded; the payer types the amount when they scan it.</p>
-<pre><code>POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/generate/static
+<pre><code>POST https://sbqr-fi-gateway-dhakabank.fly.dev/v1/qr/generate/static
 Authorization: Bearer &lt;customer access_token from Step 1/2&gt;
 Content-Type: application/json
 X-Correlation-Id: &lt;client-generated UUID, one per request, for tracing&gt;</code></pre>
@@ -446,7 +446,7 @@ X-Correlation-Id: &lt;client-generated UUID, one per request, for tracing&gt;</c
 <p><strong>Idempotency:</strong> the Gateway accepts an optional <code>Idempotency-Key</code> header; if omitted, it derives one server-side from the user + request body within a rolling window, so an accidental double-tap on "Generate" during a slow network is safe and returns the same QR rather than issuing two.</p>
 <h2 id="7-step-4-generate-a-dynamic-qr">7. Step 4 — Generate a dynamic QR</h2>
 <p><strong>Purpose:</strong> same as Step 3, but the amount is fixed and encoded into the signed payload — used for "request money" flows. Recommended max lifetime for a dynamic QR is 15 minutes; the SDK should expire/regenerate it client-side after that even though the server doesn't enforce a TTL on the payload itself.</p>
-<pre><code>POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/generate/dynamic
+<pre><code>POST https://sbqr-fi-gateway-dhakabank.fly.dev/v1/qr/generate/dynamic
 Authorization: Bearer &lt;customer access_token&gt;
 Content-Type: application/json
 X-Correlation-Id: &lt;client-generated UUID&gt;</code></pre>
@@ -467,7 +467,7 @@ X-Correlation-Id: &lt;client-generated UUID&gt;</code></pre>
 <p>Same error table and idempotency behavior as Step 3.</p>
 <h2 id="8-step-5-validate-scan-a-qr">8. Step 5 — Validate (scan) a QR</h2>
 <p><strong>Purpose:</strong> when the app scans (or a user uploads an image of) someone else's QR, this call cryptographically verifies the issuing institution's Ed25519 signature against the Bangladesh Bank trust store before the app lets the user proceed to pay. <strong>Never initiate a transfer without a <code>VALID</code> verdict here.</strong></p>
-<pre><code>POST https://rvl-sbqr-fi-gateway.fly.dev/v1/qr/validate
+<pre><code>POST https://sbqr-fi-gateway-dhakabank.fly.dev/v1/qr/validate
 Authorization: Bearer &lt;customer access_token&gt;
 Content-Type: application/json
 X-Correlation-Id: &lt;client-generated UUID&gt;</code></pre>
@@ -518,7 +518,7 @@ X-Correlation-Id: &lt;client-generated UUID&gt;</code></pre>
 <li><p><span class="badge" style="background:var(--pill-dont);color:var(--pill-dont-fg)">Don't</span> cache or hard-code the <code>sbqr-api-dev.fly.dev</code> host in the SDK — the app has no legitimate reason to reach it; if a build ever needs to, that's a sign the Gateway contract is being bypassed.</p></li>
 </ul>
 <div class="footer-note">
-  Verified against the dev environment (<code>fi-idp-dhakabank.fly.dev</code> / <code>rvl-sbqr-fi-gateway.fly.dev</code>). Dev environment only — credentials shown above are sandbox test data, not production secrets.
+  Verified against the dev environment (<code>idp-dhakabank-mock.fly.dev</code> / <code>sbqr-fi-gateway-dhakabank.fly.dev</code>). Dev environment only — credentials shown above are sandbox test data, not production secrets.
 </div>
   </main>
 </div>
