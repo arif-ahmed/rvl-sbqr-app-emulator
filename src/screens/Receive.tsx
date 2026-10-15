@@ -91,6 +91,7 @@ export function Receive({ initialTab = 'STATIC' }: { initialTab?: Mode }) {
         payload: res.qrPayload,
         payloadHash: res.payloadHash,
         signatureKeyVersion: res.signatureKeyVersion,
+        signatureKeyValidUntil: res.signatureKeyValidUntil,
         mode,
         createdAt: Date.now(),
         username: customer.username,

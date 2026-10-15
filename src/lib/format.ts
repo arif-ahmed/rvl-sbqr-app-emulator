@@ -51,3 +51,17 @@ export function randomId(prefix: string, len = 10): string {
 export function utf8Length(s: string): number {
   return new TextEncoder().encode(s).length;
 }
+
+/**
+ * Pretty-print the signing-key expiry timestamp from the QR generation
+ * response. The manager emits ISO-8601 in UTC; we render a "DD MMM YYYY"
+ * date so a tester eyeballing QrDisplay can read it at a glance. `null`
+ * means the key has no expiry (older rows predating the validity
+ * workstream), so we say "no expiry" instead of a misleading "1 Jan 1970".
+ */
+export function keyExpiry(iso: string | null | undefined): string {
+  if (!iso) return 'no expiry';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return 'no expiry';
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}

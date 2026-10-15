@@ -10,6 +10,13 @@ export interface GeneratedQr {
   payload: string;
   payloadHash: string;
   signatureKeyVersion: number;
+  /**
+   * ISO-8601 timestamp at which the signing key expires. The QR is
+   * verifiable up to this instant; after it, the recipient institution must
+   * rotate the key and the payer app will reject the QR. Carried here so
+   * the display screen can show "key expires on …" without an extra call.
+   */
+  signatureKeyValidUntil: string | null;
   mode: 'STATIC' | 'DYNAMIC';
   createdAt: number;
   username: string;

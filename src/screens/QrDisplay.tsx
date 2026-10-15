@@ -8,7 +8,7 @@ import { AppBar, Banner, Button, Chip, Rows, Sheet, StatusIcon, toast } from '..
 import { QrImage } from '../components/widgets';
 import { BRAND } from '../config';
 import { decodeP2pQr } from '../lib/emv';
-import { amountDigits, maskAccount, money } from '../lib/format';
+import { amountDigits, keyExpiry, maskAccount, money } from '../lib/format';
 import { downloadBlob, qrCardPng } from '../lib/qrImage';
 import { useLedger, type Txn } from '../state/ledger';
 import { expiresAt, type GeneratedQr } from '../state/myQrs';
@@ -90,7 +90,11 @@ export function QrDisplay({ qr, fresh }: { qr: GeneratedQr; fresh?: boolean }) {
     <div className="screen">
       <AppBar title={isDynamic ? 'Payment Request' : 'My QR'} onBack={() => (fresh ? nav.reset() : nav.back())} />
       <div className="screen__body">
-        {fresh && <Banner kind="success">QR generated and signed by sbqr.api (key v{qr.signatureKeyVersion}).</Banner>}
+        {fresh && (
+          <Banner kind="success">
+            QR generated and signed by sbqr.api (key v{qr.signatureKeyVersion}, valid until {keyExpiry(qr.signatureKeyValidUntil)}).
+          </Banner>
+        )}
 
         <div className={`qrcard ${expired || paidAlready ? 'is-dimmed' : ''}`}>
           <QrImage payload={qr.payload} badge={qr.amount ? `BDT ${amountDigits(Number(qr.amount))}` : undefined} size={200} />
@@ -141,6 +145,7 @@ export function QrDisplay({ qr, fresh }: { qr: GeneratedQr; fresh?: boolean }) {
                   ['QR type', qr.mode],
                   ['Institution', parsed.institutionCode ?? '—'],
                   ['Signature key version', String(qr.signatureKeyVersion)],
+                  ['Signature key valid until', keyExpiry(qr.signatureKeyValidUntil)],
                   ['Payload hash', <code className="mono-wrap">{qr.payloadHash}</code>],
                   ['CRC', parsed.crc.ok ? `${parsed.crc.declared} ✓` : `${parsed.crc.declared ?? '—'} ✗`],
                 ]}

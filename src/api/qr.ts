@@ -23,6 +23,8 @@ export interface GenerateQrResponse {
   payloadHash: string;
   qrType: string;
   signatureKeyVersion: number;
+  /** ISO-8601 expiry of the signing key, or null when the key has no expiry. */
+  signatureKeyValidUntil: string | null;
 }
 
 export type QrVerdict =
